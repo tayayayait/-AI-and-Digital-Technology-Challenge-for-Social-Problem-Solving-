@@ -318,9 +318,10 @@ Deno.serve(async (request) => {
 
     let needsRevalidation = false;
     if (cachedCameras && cachedCameras.length > 0) {
-      const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
+      // ITS CCTV HLS URL 토큰은 수 분 내에 만료되므로 캐시 유지 시간을 2분으로 단축합니다.
+      const cacheExpirationTime = Date.now() - 2 * 60 * 1000;
       for (const cam of cachedCameras) {
-        if (new Date((cam as any)._updatedAt).getTime() < twentyFourHoursAgo) {
+        if (new Date((cam as any)._updatedAt).getTime() < cacheExpirationTime) {
           needsRevalidation = true;
           break;
         }
