@@ -173,6 +173,9 @@ importers:
       vite-tsconfig-paths:
         specifier: ^6.0.2
         version: 6.1.1(typescript@5.9.3)(vite@8.0.16(@types/node@22.19.21)(jiti@1.21.7)(terser@5.51.2))
+      workbox-window:
+        specifier: ^7.4.1
+        version: 7.4.1
       zod:
         specifier: ^3.24.2
         version: 3.25.76
