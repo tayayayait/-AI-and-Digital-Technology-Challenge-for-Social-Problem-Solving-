@@ -18,12 +18,13 @@ const wrapper = ({ children }: PropsWithChildren) => {
 };
 
 describe("createDisasterMessagesFallbackResult", () => {
-  test("returns demo disaster messages as an explicit fallback result", () => {
+  test("returns an empty explicit fallback without leaking a demo region", () => {
     const result = createDisasterMessagesFallbackResult(() => 1_000);
 
     expect(result.status).toBe("FALLBACK");
-    expect(result.source).toBe("demo-disaster-messages");
-    expect(result.data?.[0]?.region).toBe("서울 강남구");
+    expect(result.source).toBe("MOIS-DSSP-IF-00247");
+    expect(result.data).toEqual([]);
+    expect(JSON.stringify(result)).not.toMatch(/서울|강남|역삼|탄천/);
   });
 });
 
@@ -108,6 +109,25 @@ describe("useDisasterMessages", () => {
 
     expect(result.current.result.status).toBe("FALLBACK");
     expect(result.current.result.error).toBe("upstream unavailable");
+    expect(result.current.result.data).toEqual([]);
+  });
+
+  test("관심 지역이 정해지지 않으면 재난문자 API를 호출하지 않는다", async () => {
+    const client = vi.fn();
+
+    const { result } = renderHook(
+      () =>
+        useDisasterMessages({
+          region: "",
+          startDate: "20260612",
+          enabled: false,
+          client,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(client).not.toHaveBeenCalled();
   });
 
   test("formats the default request date as YYYYMMDD", () => {

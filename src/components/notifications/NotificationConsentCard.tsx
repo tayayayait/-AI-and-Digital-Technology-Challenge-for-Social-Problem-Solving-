@@ -1,10 +1,42 @@
+import { useState } from "react";
 import { Bell, BellOff, MapPinOff } from "lucide-react";
 
 import { useNotificationConsent } from "@/hooks/useNotificationConsent";
+import { initPushNotifications, unsubscribePushNotifications } from "@/lib/push/pushService";
+import { useScenario } from "@/store/scenario";
 
 export function NotificationConsentCard() {
   const { state, message, enablePush, revokePush } = useNotificationConsent();
+  const { origin, locationStatus } = useScenario();
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+  const [isWorking, setIsWorking] = useState(false);
   const enabled = state.pushConsent && state.browserPermission === "granted";
+
+  const handleEnablePush = async () => {
+    setIsWorking(true);
+    setPushMessage(null);
+    try {
+      const result = await initPushNotifications({
+        region: locationStatus === "GRANTED" ? origin : null,
+        alertThreshold: state.alertThreshold,
+      });
+      enablePush(result.permission ?? "unsupported");
+      setPushMessage(result.message);
+    } finally {
+      setIsWorking(false);
+    }
+  };
+
+  const handleRevokePush = async () => {
+    setIsWorking(true);
+    try {
+      const result = await unsubscribePushNotifications();
+      revokePush();
+      setPushMessage(result.message);
+    } finally {
+      setIsWorking(false);
+    }
+  };
 
   return (
     <section className="rounded-[8px] border border-[var(--border-soft)] bg-white p-4">
@@ -38,23 +70,23 @@ export function NotificationConsentCard() {
             위치 상시 추적은 MVP 범위 밖이며 기본값은 항상 비활성입니다.
           </p>
           <p className="mt-2 text-[12px] text-[var(--text-muted)]" aria-live="polite">
-            {message}
+            {pushMessage ?? message}
           </p>
         </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button
           type="button"
-          onClick={enablePush}
-          disabled={enabled}
+          onClick={handleEnablePush}
+          disabled={isWorking}
           className="inline-flex min-h-11 items-center rounded-[8px] bg-[var(--primary)] px-4 text-[13px] font-extrabold text-white disabled:opacity-50"
         >
           푸시 알림 동의
         </button>
         <button
           type="button"
-          onClick={revokePush}
-          disabled={!state.pushConsent}
+          onClick={handleRevokePush}
+          disabled={!state.pushConsent || isWorking}
           className="inline-flex min-h-11 items-center rounded-[8px] border border-[var(--border)] bg-white px-4 text-[13px] font-bold disabled:opacity-50"
         >
           동의 철회
@@ -67,7 +99,7 @@ export function NotificationConsentCard() {
 function Status({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-[8px] bg-[var(--surface-alt)] px-3 py-2">
-      <div className="font-bold">{label}</div>
+      <div className="font-bold text-[var(--text-muted)]">{label}</div>
       <div className="mt-0.5 font-extrabold text-[var(--text)]">{value}</div>
     </div>
   );

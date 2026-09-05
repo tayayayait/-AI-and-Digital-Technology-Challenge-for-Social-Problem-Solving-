@@ -17,12 +17,58 @@ export interface GeminiPromptRequest {
   recommendedShelterId?: string;
   shelterName: string;
   distanceMeters?: number;
+  wmsFloodOverlap?: number;
+  wmsRiverOverlap?: number;
   routeReasons: string[];
   dataTimestamp: string;
   allowedProperNouns: string[];
+  mode: "QUESTION" | "SITUATION_GUIDANCE";
+  disasterTypes: string[];
+  selectionKind?: "AUTO_RECOMMENDED" | "USER_SELECTED";
+  facts: Array<{
+    id: string;
+    kind:
+      | "RISK"
+      | "WEATHER"
+      | "WARNING"
+      | "DISASTER_MESSAGE"
+      | "FLOOD_MAP"
+      | "RIVER"
+      | "TRAFFIC"
+      | "UNDERPASS"
+      | "ROUTE"
+      | "SHELTER";
+    text: string;
+    source: string;
+    observedAt: string | null;
+    status: "LIVE" | "DELAYED" | "FALLBACK";
+  }>;
+  alternatives: Array<{
+    shelterId: string;
+    shelterName: string;
+    distanceMeters: number;
+    distanceKind: "ROUTE" | "STRAIGHT_LINE";
+    routeVerified: boolean;
+  }>;
 }
 
 const RISK_LEVELS = new Set<RiskLevel>(["SAFE", "WATCH", "WARNING", "CRITICAL", "UNKNOWN"]);
+const GEMINI_MODES = new Set(["QUESTION", "SITUATION_GUIDANCE"]);
+const SELECTION_KINDS = new Set(["AUTO_RECOMMENDED", "USER_SELECTED"]);
+const FACT_KINDS = new Set([
+  "RISK",
+  "WEATHER",
+  "WARNING",
+  "DISASTER_MESSAGE",
+  "FLOOD_MAP",
+  "RIVER",
+  "TRAFFIC",
+  "UNDERPASS",
+  "ROUTE",
+  "SHELTER",
+]);
+const FACT_STATUSES = new Set(["LIVE", "DELAYED", "FALLBACK"]);
+const DISTANCE_KINDS = new Set(["ROUTE", "STRAIGHT_LINE"]);
 
 export const parseJsonBody = async (request: Request) => {
   try {
@@ -44,6 +90,78 @@ const parseBoundedText = (value: unknown, name: string, min: number, max: number
   const trimmed = value.trim();
   if (trimmed.length < min || trimmed.length > max) throw new Error(`Invalid ${name}`);
   return trimmed;
+};
+
+const parseFiniteNonNegativeNumber = (value: unknown, name: string) => {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new Error(`Invalid ${name}`);
+  }
+  return value;
+};
+
+const parseGeminiFacts = (value: unknown): GeminiPromptRequest["facts"] => {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error("Invalid facts");
+
+  return value.slice(0, 20).map((fact, index) => {
+    if (!isRecord(fact)) throw new Error(`Invalid facts[${index}]`);
+    const kind = parseBoundedText(fact.kind, `facts[${index}].kind`, 1, 30);
+    const status = parseBoundedText(fact.status, `facts[${index}].status`, 1, 20);
+    if (!FACT_KINDS.has(kind) || !FACT_STATUSES.has(status)) {
+      throw new Error(`Invalid facts[${index}]`);
+    }
+
+    return {
+      id: parseBoundedText(fact.id, `facts[${index}].id`, 1, 100),
+      kind: kind as GeminiPromptRequest["facts"][number]["kind"],
+      text: parseBoundedText(fact.text, `facts[${index}].text`, 1, 320),
+      source: parseBoundedText(fact.source, `facts[${index}].source`, 1, 100),
+      observedAt:
+        fact.observedAt === null || fact.observedAt === undefined
+          ? null
+          : parseBoundedText(fact.observedAt, `facts[${index}].observedAt`, 1, 80),
+      status: status as GeminiPromptRequest["facts"][number]["status"],
+    };
+  });
+};
+
+const parseGeminiAlternatives = (value: unknown): GeminiPromptRequest["alternatives"] => {
+  if (value === undefined) return [];
+  if (!Array.isArray(value)) throw new Error("Invalid alternatives");
+
+  return value.slice(0, 3).map((alternative, index) => {
+    if (!isRecord(alternative)) throw new Error(`Invalid alternatives[${index}]`);
+    const distanceKind = parseBoundedText(
+      alternative.distanceKind,
+      `alternatives[${index}].distanceKind`,
+      1,
+      30,
+    );
+    if (!DISTANCE_KINDS.has(distanceKind) || typeof alternative.routeVerified !== "boolean") {
+      throw new Error(`Invalid alternatives[${index}]`);
+    }
+
+    return {
+      shelterId: parseBoundedText(
+        alternative.shelterId,
+        `alternatives[${index}].shelterId`,
+        1,
+        100,
+      ),
+      shelterName: parseBoundedText(
+        alternative.shelterName,
+        `alternatives[${index}].shelterName`,
+        1,
+        100,
+      ),
+      distanceMeters: parseFiniteNonNegativeNumber(
+        alternative.distanceMeters,
+        `alternatives[${index}].distanceMeters`,
+      ),
+      distanceKind: distanceKind as GeminiPromptRequest["alternatives"][number]["distanceKind"],
+      routeVerified: alternative.routeVerified,
+    };
+  });
 };
 
 const validateLatLng = (value: unknown, name: string): LatLng => {
@@ -81,6 +199,14 @@ export const validateGeminiPromptRequest = (value: unknown): GeminiPromptRequest
         .filter(Boolean)
         .slice(0, 5)
     : [];
+  const mode =
+    typeof value.mode === "string" && GEMINI_MODES.has(value.mode)
+      ? (value.mode as GeminiPromptRequest["mode"])
+      : "QUESTION";
+  const selectionKind =
+    typeof value.selectionKind === "string" && SELECTION_KINDS.has(value.selectionKind)
+      ? (value.selectionKind as GeminiPromptRequest["selectionKind"])
+      : undefined;
 
   return {
     question: parseBoundedText(value.question, "question", 1, 200),
@@ -106,5 +232,16 @@ export const validateGeminiPromptRequest = (value: unknown): GeminiPromptRequest
           .filter(Boolean)
           .slice(0, 20)
       : [],
+    mode,
+    disasterTypes: Array.isArray(value.disasterTypes)
+      ? value.disasterTypes
+          .filter((item): item is string => typeof item === "string")
+          .map((item) => item.trim())
+          .filter(Boolean)
+          .slice(0, 4)
+      : [],
+    selectionKind,
+    facts: parseGeminiFacts(value.facts),
+    alternatives: parseGeminiAlternatives(value.alternatives),
   };
 };

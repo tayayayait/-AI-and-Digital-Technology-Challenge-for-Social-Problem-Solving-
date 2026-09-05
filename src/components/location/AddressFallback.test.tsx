@@ -24,6 +24,15 @@ describe("AddressFallback", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("2글자 이상");
   });
 
+  test("uses a region-neutral address example", () => {
+    render(<AddressFallback onSelect={vi.fn()} geocode={vi.fn()} />);
+
+    expect(screen.getByLabelText("주소 또는 장소명")).not.toHaveAttribute(
+      "placeholder",
+      expect.stringMatching(/서울|강남|역삼|탄천/),
+    );
+  });
+
   test("lets the user select a geocoding result", async () => {
     const user = userEvent.setup();
     const onSelect = vi.fn();

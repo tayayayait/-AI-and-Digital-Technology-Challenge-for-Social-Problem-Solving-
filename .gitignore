@@ -11,9 +11,12 @@ node_modules
 dist
 dist-ssr
 .output
+.vercel/
 .vinxi
 .tanstack/**
 .nitro
+.playwright-mcp/
+.playwright-cli/
 *.local
 .env
 .env.*

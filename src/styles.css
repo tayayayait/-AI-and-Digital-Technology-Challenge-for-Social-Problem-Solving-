@@ -40,6 +40,8 @@
 }
 
 :root {
+  --font-scale: 1;
+
   /* §6.1 기본 */
   --bg: #f8fafc;
   --surface: #ffffff;
@@ -81,6 +83,30 @@
   --route-flood: #ea580c;
 }
 
+:root[data-a11y="large-contrast"] {
+  --font-scale: 1.25;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-alt: #f3f4f6;
+  --text: #000000;
+  --text-muted: #1f2937;
+  --text-subtle: #374151;
+  --border: #4b5563;
+  --border-soft: #6b7280;
+  --primary: #00458a;
+  --primary-hover: #00366d;
+  --focus: #00458a;
+  --risk-safe-text: #000000;
+  --risk-watch-text: #000000;
+  --risk-warning-text: #000000;
+  --risk-critical-text: #000000;
+  --risk-unknown-text: #000000;
+  --route-recommended: #00458a;
+  --route-alternative: #374151;
+  --route-rejected: #9f1239;
+  --route-flood: #9a3412;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);
@@ -99,6 +125,53 @@
   }
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+
+  :root[data-a11y="large-contrast"] main {
+    font-size: 125%;
+  }
+
+  :root[data-a11y="large-contrast"] main :where(p, h1, h2, h3, h4, li, label, button, a) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  :root[data-a11y="large-contrast"] main .text-\[11px\] {
+    font-size: 13.75px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[12px\] {
+    font-size: 15px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[13px\] {
+    font-size: 16.25px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[14px\] {
+    font-size: 17.5px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[15px\] {
+    font-size: 18.75px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[16px\] {
+    font-size: 20px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[17px\] {
+    font-size: 21.25px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[18px\] {
+    font-size: 22.5px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[20px\] {
+    font-size: 25px !important;
+  }
+  :root[data-a11y="large-contrast"] main .text-\[24px\] {
+    font-size: 30px !important;
+  }
+
+  :root[data-a11y="large-contrast"] .a11y-map-marker {
+    scale: 1.2;
+    border-width: 3px !important;
+    outline: 1px solid #000000;
+    outline-offset: 1px;
   }
 }
 

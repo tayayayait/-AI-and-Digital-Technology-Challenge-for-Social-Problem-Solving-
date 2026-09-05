@@ -47,6 +47,24 @@ export interface TrafficEvent {
   source: string;
 }
 
+export interface Underpass {
+  id: string;
+  name: string;
+  position: LatLng;
+  startPosition: LatLng;
+  endPosition: LatLng;
+  region: string;
+  province?: string | null;
+  district?: string | null;
+  address?: string | null;
+  roadName?: string | null;
+  direction?: string | null;
+  lengthMeters?: number | null;
+  managementAgency?: string | null;
+  source: string;
+  sourceUpdatedAt: string | null;
+}
+
 export interface RouteResult {
   id: string;
   mode: RouteMode;
@@ -61,6 +79,40 @@ export interface RouteResult {
   shelterId: string;
 }
 
+export type SafetyFactKind =
+  | "RISK"
+  | "WEATHER"
+  | "WARNING"
+  | "DISASTER_MESSAGE"
+  | "FLOOD_MAP"
+  | "RIVER"
+  | "TRAFFIC"
+  | "UNDERPASS"
+  | "ROUTE"
+  | "SHELTER";
+
+export interface SafetyFact {
+  id: string;
+  kind: SafetyFactKind;
+  text: string;
+  source: string;
+  observedAt: string | null;
+  status: "LIVE" | "DELAYED" | "FALLBACK";
+}
+
+export type GuidanceSourceKind = "LIVE_DATA" | "GENERAL_KNOWLEDGE";
+
+export interface AiGuidanceItem {
+  text: string;
+  sourceKind: GuidanceSourceKind;
+  evidenceRefs: string[];
+}
+
+export interface AiAlternativeShelterReason {
+  shelterId: string;
+  reason: AiGuidanceItem;
+}
+
 export interface AiAnswer {
   judgement:
     | "WAIT"
@@ -73,7 +125,14 @@ export interface AiAnswer {
   reasons: string[];
   basis: string[];
   timestamp: string;
+  /** 입력 근거 ID와 출력 스키마가 검증됐다는 뜻이며, 현장 사실 자체의 보증은 아니다. */
   verified: boolean;
+  riskSummary?: AiGuidanceItem;
+  immediateActions?: AiGuidanceItem[];
+  disasterActions?: AiGuidanceItem[];
+  recommendedShelterReason?: AiGuidanceItem;
+  movementWarnings?: AiGuidanceItem[];
+  alternativeShelterReasons?: AiAlternativeShelterReason[];
 }
 
 export interface WeatherNow {
@@ -105,6 +164,20 @@ export interface RiskCalculationInput {
   }>;
   hasUnderpass: boolean;
   trafficControl: boolean;
+  /** 신뢰도 0.7 이상인 CCTV 멀티모달 판독 근거. */
+  cctvFloodEvidence?: {
+    depthGrade: "NONE" | "SHALLOW" | "DEEP" | "IMPASSABLE";
+    confidence: number;
+  };
+  /** 화면 근거에 표시할 실제 통제 도로·상황명. */
+  trafficControlTitle?: string;
+  /**
+   * 기상청 기상특보 중 침수 관련(호우·태풍·홍수·해일) 최고 등급.
+   * 강우 관측값과 독립된 근거이므로 강우 점수와 별도로 반영한다.
+   */
+  floodWarningLevel?: "WATCH" | "WARNING" | "CRITICAL" | null;
+  /** 화면·설명 표시용 특보명. 예: 호우주의보 */
+  floodWarningTitle?: string;
   failedDataCount?: number;
   sensors?: Array<{
     id: string;
@@ -130,6 +203,7 @@ export interface RiskScoreBreakdown {
   disasterMessages: number;
   underpass: number;
   trafficControl: number;
+  cctvFlood: number;
   total: number;
   level: RiskLevel;
   reasons: string[];

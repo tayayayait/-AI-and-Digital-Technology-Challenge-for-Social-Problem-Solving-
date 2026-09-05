@@ -1,20 +1,24 @@
 $ErrorActionPreference = "Stop"
 
-$ProjectRef = "qsuxpldbwzqnomvtmtyw"
+$ProjectRef = "qlaeegqbopzwqdcbjbxc"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $SupabaseCli = Join-Path $Root "node_modules\.bin\supabase.cmd"
 $SecretScript = Join-Path $PSScriptRoot "set-supabase-secrets.ps1"
 $Functions = @(
   "naver-directions",
   "tmap-pedestrian",
-  "weather",
+  "weather", "weather-warning",
   "disaster-messages",
   "gemini-chat",
   "gemini-notice",
   "sensors",
   "safemap-feature-info",
   "traffic-events",
-  "cctv-info"
+  "cctv-info",
+  "cctv-analyze",
+  "push-subscribe",
+  "push-notify",
+  "risk-monitor"
 )
 
 function Read-EnvFile($Path) {
@@ -46,8 +50,18 @@ Push-Location $Root
 try {
   Assert-ProjectAccess $SupabaseCli $ProjectRef
 
-  Write-Output "Uploading database migrations..."
+  Write-Output "Linking Supabase project..."
+  $LinkArgs = @("link", "--project-ref", $ProjectRef, "--yes")
   $EnvValues = Read-EnvFile (Join-Path $Root ".env")
+  if (-not [string]::IsNullOrWhiteSpace($EnvValues["SUPABASE_DB_PASSWORD"])) {
+    $LinkArgs += @("--password", $EnvValues["SUPABASE_DB_PASSWORD"])
+  }
+  & $SupabaseCli @LinkArgs
+  if ($LASTEXITCODE -ne 0) {
+    throw "Supabase project link failed."
+  }
+
+  Write-Output "Uploading database migrations..."
   $DbPushArgs = @("db", "push", "--linked", "--yes")
   if (-not [string]::IsNullOrWhiteSpace($EnvValues["SUPABASE_DB_PASSWORD"])) {
     $DbPushArgs += @("--password", $EnvValues["SUPABASE_DB_PASSWORD"])

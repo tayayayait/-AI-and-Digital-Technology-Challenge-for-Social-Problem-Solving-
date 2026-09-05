@@ -104,19 +104,31 @@ export const geocodeAddress = async (query: string): Promise<GeocodeResult[]> =>
           });
 
           if (!error && data?.items && Array.isArray(data.items)) {
-            results = data.items.map((item: any, index: number) => {
+            results = data.items.flatMap((item: unknown, index: number) => {
+              if (!item || typeof item !== "object") return [];
+              const localItem = item as Record<string, unknown>;
               // Naver Local API returns mapx/mapy as WGS84 * 10^7 (e.g. 1269723429)
-              const lng = Number(item.mapx) / 10000000;
-              const lat = Number(item.mapy) / 10000000;
-              const title = item.title.replace(/<[^>]+>/g, ""); // Remove HTML tags like <b>
+              const lng = Number(localItem.mapx) / 10000000;
+              const lat = Number(localItem.mapy) / 10000000;
+              const title =
+                typeof localItem.title === "string"
+                  ? localItem.title.replace(/<[^>]+>/g, "")
+                  : validation.value;
+              if (!Number.isFinite(lat) || !Number.isFinite(lng)) return [];
+              const address =
+                (typeof localItem.roadAddress === "string" && localItem.roadAddress) ||
+                (typeof localItem.address === "string" && localItem.address) ||
+                "확실한 정보 없음";
 
-              return {
-                id: `naver-local-${index}`,
-                label: title,
-                address: item.roadAddress || item.address,
-                position: { lat, lng },
-                source: "NAVER",
-              };
+              return [
+                {
+                  id: `naver-local-${index}`,
+                  label: title,
+                  address,
+                  position: { lat, lng },
+                  source: "NAVER" as const,
+                },
+              ];
             });
           }
         } catch (err) {

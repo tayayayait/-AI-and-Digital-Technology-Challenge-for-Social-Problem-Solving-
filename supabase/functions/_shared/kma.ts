@@ -72,7 +72,6 @@ export const normalizeKmaWeather = ({
   const precipitationProbabilityPercent = asNumber(valueByCategory(forecastItems, "POP"));
   const precipitationAmount = valueByCategory(forecastItems, "PCP");
   const precipitation = precipitationType(valueByCategory(nowcastItems, "PTY"));
-  const hasPrecipitation = precipitation !== "none" || rainfallMmPerHour > 0;
 
   return {
     observedAt: `${baseDate}T${baseTime}`,
@@ -85,15 +84,10 @@ export const normalizeKmaWeather = ({
     precipitationAmount,
     precipitationType: precipitation,
     waterLevelMeters: undefined,
-    alerts: hasPrecipitation
-      ? [
-          {
-            id: `kma-${baseDate}-${baseTime}`,
-            level: rainfallMmPerHour >= 30 ? "WARNING" : "WATCH",
-            title: "강수 관측",
-            issuedAt: `${baseDate}T${baseTime}`,
-          },
-        ]
-      : [],
+    // 특보는 기상청이 발령하는 것이지 강수량에서 유도할 수 있는 값이 아니다.
+    // 예전에는 여기서 강수 유무로 "강수 관측" 경보를 만들어 냈는데, 기상청이 낸 적
+    // 없는 특보를 사용자에게 보여주는 문제가 있었고 위험도 계산에서도 강우 점수와
+    // 순환 참조가 됐다. 실제 특보는 weather-warning Edge Function이 따로 가져온다.
+    alerts: [],
   };
 };

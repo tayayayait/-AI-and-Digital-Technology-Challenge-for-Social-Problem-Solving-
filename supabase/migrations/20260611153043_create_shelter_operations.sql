@@ -19,6 +19,10 @@ create table public.shelter_operations (
 
 alter table public.shelter_operations enable row level security;
 
+grant select on table public.shelter_operations to anon;
+grant select, insert, update, delete on table public.shelter_operations to authenticated;
+grant all on table public.shelter_operations to service_role;
+
 create trigger shelter_operations_touch_updated_at
 before update on public.shelter_operations
 for each row execute function public.touch_updated_at();

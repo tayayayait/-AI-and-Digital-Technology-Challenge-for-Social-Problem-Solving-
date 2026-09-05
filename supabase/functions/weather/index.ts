@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson, requireEnv } from "../_shared/upstream.ts";
 import { normalizeKmaWeather, toKmaForecastBase } from "../_shared/kma.ts";
@@ -67,48 +67,50 @@ const buildKmaUrl = ({
   return url;
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const { nx, ny, baseDate, baseTime } = parseGridRequest(await parseJsonBody(request));
-    const serviceKey = requireEnv("KMA_SERVICE_KEY");
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const { nx, ny, baseDate, baseTime } = parseGridRequest(await parseJsonBody(request));
+      const serviceKey = requireEnv("KMA_SERVICE_KEY");
 
-    const forecastBase = toKmaForecastBase(baseDate, baseTime);
-    const [nowcast, forecast] = await Promise.all([
-      fetchJson(
-        buildKmaUrl({
-          endpoint: "getUltraSrtNcst",
-          serviceKey,
+      const forecastBase = toKmaForecastBase(baseDate, baseTime);
+      const [nowcast, forecast] = await Promise.all([
+        fetchJson(
+          buildKmaUrl({
+            endpoint: "getUltraSrtNcst",
+            serviceKey,
+            baseDate,
+            baseTime,
+            nx,
+            ny,
+          }),
+        ),
+        fetchJson(
+          buildKmaUrl({
+            endpoint: "getVilageFcst",
+            serviceKey,
+            baseDate: forecastBase.baseDate,
+            baseTime: forecastBase.baseTime,
+            nx,
+            ny,
+          }),
+        ),
+      ]);
+
+      return jsonOk({
+        ...normalizeKmaWeather({
           baseDate,
           baseTime,
-          nx,
-          ny,
+          nowcastItems: extractItems(nowcast),
+          forecastItems: extractItems(forecast),
         }),
-      ),
-      fetchJson(
-        buildKmaUrl({
-          endpoint: "getVilageFcst",
-          serviceKey,
-          baseDate: forecastBase.baseDate,
-          baseTime: forecastBase.baseTime,
-          nx,
-          ny,
-        }),
-      ),
-    ]);
-
-    return jsonOk({
-      ...normalizeKmaWeather({
-        baseDate,
-        baseTime,
-        nowcastItems: extractItems(nowcast),
-        forecastItems: extractItems(forecast),
-      }),
-    });
-  } catch (error) {
-    return edgeError(error);
-  }
-});
+      });
+    } catch (error) {
+      return edgeError(error);
+    }
+  }),
+);

@@ -11,6 +11,9 @@ create table public.profiles (
 
 alter table public.profiles enable row level security;
 
+grant select, update on table public.profiles to authenticated;
+grant all on table public.profiles to service_role;
+
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
@@ -67,6 +70,12 @@ set search_path = public
 as $$
   select coalesce(public.current_user_role() in ('operator', 'admin'), false)
 $$;
+
+revoke all on function public.handle_new_user_profile() from public, anon, authenticated;
+revoke all on function public.current_user_role() from public, anon, authenticated;
+revoke all on function public.has_operator_access() from public, anon, authenticated;
+grant execute on function public.current_user_role() to authenticated;
+grant execute on function public.has_operator_access() to authenticated;
 
 create policy "profiles_select_own_or_operator"
 on public.profiles

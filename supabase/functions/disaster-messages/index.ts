@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson, requireEnv } from "../_shared/upstream.ts";
 import {
@@ -43,35 +43,37 @@ const parseRequest = (value: unknown) => {
   };
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const input = parseRequest(await parseJsonBody(request));
-    const serviceKey = requireEnv("DISASTER_MSG_SERVICE_KEY");
-    const apiUrl = Deno.env.get("DISASTER_MSG_API_URL")?.trim() || DEFAULT_API_URL;
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const input = parseRequest(await parseJsonBody(request));
+      const serviceKey = requireEnv("DISASTER_MSG_SERVICE_KEY");
+      const apiUrl = Deno.env.get("DISASTER_MSG_API_URL")?.trim() || DEFAULT_API_URL;
 
-    const upstream = await fetchJson(
-      buildDisasterMessagesUrl({
-        apiUrl,
-        serviceKey,
-        numOfRows: input.numOfRows,
+      const upstream = await fetchJson(
+        buildDisasterMessagesUrl({
+          apiUrl,
+          serviceKey,
+          numOfRows: input.numOfRows,
+          pageNo: input.pageNo,
+          returnType: "json",
+          crtDt: input.crtDt,
+          rgnNm: input.rgnNm,
+        }),
+      );
+
+      return jsonOk({
+        messages: normalizeDisasterMessagesResponse(upstream),
         pageNo: input.pageNo,
-        returnType: "json",
-        crtDt: input.crtDt,
-        rgnNm: input.rgnNm,
-      }),
-    );
-
-    return jsonOk({
-      messages: normalizeDisasterMessagesResponse(upstream),
-      pageNo: input.pageNo,
-      numOfRows: input.numOfRows,
-      source: "MOIS-DSSP-IF-00247",
-    });
-  } catch (error) {
-    return edgeError(error);
-  }
-});
+        numOfRows: input.numOfRows,
+        source: "MOIS-DSSP-IF-00247",
+      });
+    } catch (error) {
+      return edgeError(error);
+    }
+  }),
+);

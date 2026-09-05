@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, requireEnv } from "../_shared/upstream.ts";
 
@@ -115,45 +115,47 @@ const parseFeatures = (text: string) => {
   return [];
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const { layer, bounds, point } = parseRequest(await parseJsonBody(request));
-    const serviceKey = requireEnv("SAFEMAP_SERVICE_KEY");
-    const width = 256;
-    const height = 256;
-    const { x, y } = toPixel(point, bounds, width, height);
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const { layer, bounds, point } = parseRequest(await parseJsonBody(request));
+      const serviceKey = requireEnv("SAFEMAP_SERVICE_KEY");
+      const width = 256;
+      const height = 256;
+      const { x, y } = toPixel(point, bounds, width, height);
 
-    const url = new URL(layer.endpoint);
-    url.searchParams.set("serviceKey", serviceKey);
-    url.searchParams.set("service", "WMS");
-    url.searchParams.set("request", "GetFeatureInfo");
-    url.searchParams.set("version", "1.1.1");
-    url.searchParams.set("layers", layer.layer);
-    url.searchParams.set("query_layers", layer.layer);
-    url.searchParams.set("styles", "");
-    url.searchParams.set("srs", "EPSG:4326");
-    url.searchParams.set("bbox", formatBbox(bounds));
-    url.searchParams.set("format", "image/png");
-    url.searchParams.set("width", String(width));
-    url.searchParams.set("height", String(height));
-    url.searchParams.set("info_format", "application/json");
-    url.searchParams.set("feature_count", "10");
-    url.searchParams.set("x", String(x));
-    url.searchParams.set("y", String(y));
+      const url = new URL(layer.endpoint);
+      url.searchParams.set("serviceKey", serviceKey);
+      url.searchParams.set("service", "WMS");
+      url.searchParams.set("request", "GetFeatureInfo");
+      url.searchParams.set("version", "1.1.1");
+      url.searchParams.set("layers", layer.layer);
+      url.searchParams.set("query_layers", layer.layer);
+      url.searchParams.set("styles", "");
+      url.searchParams.set("srs", "EPSG:4326");
+      url.searchParams.set("bbox", formatBbox(bounds));
+      url.searchParams.set("format", "image/png");
+      url.searchParams.set("width", String(width));
+      url.searchParams.set("height", String(height));
+      url.searchParams.set("info_format", "application/json");
+      url.searchParams.set("feature_count", "10");
+      url.searchParams.set("x", String(x));
+      url.searchParams.set("y", String(y));
 
-    const response = await fetch(url);
-    const text = await response.text();
-    if (!response.ok) {
-      return jsonOk({ overlap: 0, features: [], error: `SafeMap ${response.status}` });
+      const response = await fetch(url);
+      const text = await response.text();
+      if (!response.ok) {
+        return jsonOk({ overlap: 0, features: [], error: `SafeMap ${response.status}` });
+      }
+
+      const features = parseFeatures(text);
+      return jsonOk({ overlap: features.length > 0 ? 1 : 0, features });
+    } catch (error) {
+      return edgeError(error);
     }
-
-    const features = parseFeatures(text);
-    return jsonOk({ overlap: features.length > 0 ? 1 : 0, features });
-  } catch (error) {
-    return edgeError(error);
-  }
-});
+  }),
+);

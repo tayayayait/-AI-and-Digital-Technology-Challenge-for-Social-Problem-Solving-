@@ -9,6 +9,9 @@ export function ApiStatusCard({ item }: { item: ApiHealthStatus }) {
         <div className="min-w-0">
           <div className="truncate text-[14px] font-extrabold">{item.name}</div>
           <div className="mt-1 text-[12px] text-[var(--text-subtle)]">
+            최근 확인 {item.lastChecked || "확실한 정보 없음"}
+          </div>
+          <div className="mt-0.5 text-[11px] text-[var(--text-subtle)]">
             최근 성공 {item.lastSuccess || "확실한 정보 없음"}
           </div>
         </div>

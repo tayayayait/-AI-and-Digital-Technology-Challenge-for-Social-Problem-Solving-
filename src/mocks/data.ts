@@ -300,7 +300,7 @@ export const RISK_ZONES: RiskZone[] = [
 ];
 
 // 데모용 단순 polyline. 도보/차량 두 모드 × 2~3개 경로
-export function buildRoutes(origin: LatLng, customDest?: any): RouteResult[] {
+export function buildRoutes(origin: LatLng, customDest?: Shelter): RouteResult[] {
   const dest = customDest || SHELTERS[0]; // 역삼초등학교
   const altDest = SHELTERS[4]; // 논현1동주민센터
   return [

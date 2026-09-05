@@ -1,4 +1,5 @@
-import type { RiskLevel, RiskZone, Shelter } from "@/lib/types";
+import { classifyTrafficEvent } from "@/lib/risk/trafficEventRisk";
+import type { RiskLevel, RiskZone, Shelter, TrafficEvent } from "@/lib/types";
 import { haversineMeters } from "@/lib/utils";
 
 export interface AggregatedRiskZone {
@@ -19,12 +20,6 @@ const LEVEL_SCORE: Record<AggregatedRiskZone["level"], number> = {
   CRITICAL: 3,
 };
 
-const CONTROL_ROADS: Record<string, string[]> = {
-  "rz-1": ["강남대로 저지대 구간", "테헤란로 강남역 접근로", "역삼로 배수 취약 구간"],
-  "rz-2": ["영동대로 탄천 접근로", "대치동 하천변 도로", "삼성로 저지대 구간"],
-  "rz-3": ["선릉로 선정릉 인근", "봉은사로 지하차도 접근로", "학동로 우회 연결로"],
-};
-
 const polygonCenter = (zone: RiskZone) => {
   const total = zone.polygon.reduce(
     (acc, [lng, lat]) => ({ lat: acc.lat + lat, lng: acc.lng + lng }),
@@ -34,6 +29,22 @@ const polygonCenter = (zone: RiskZone) => {
     lat: total.lat / zone.polygon.length,
     lng: total.lng / zone.polygon.length,
   };
+};
+
+const nearbyControlRoads = (zone: RiskZone, trafficEvents: TrafficEvent[]) => {
+  const center = polygonCenter(zone);
+  return Array.from(
+    new Set(
+      trafficEvents
+        .filter(
+          (event) =>
+            classifyTrafficEvent(event) === "BLOCKING" &&
+            haversineMeters(center, event.position) <= 2600,
+        )
+        .map((event) => event.roadName?.trim())
+        .filter((road): road is string => Boolean(road)),
+    ),
+  );
 };
 
 const impactedShelters = (zone: RiskZone, shelters: Shelter[]) => {
@@ -59,6 +70,7 @@ const virtualAffectedPeople = (zone: RiskZone, shelters: Shelter[]) => {
 export const aggregateRiskZones = (
   riskZones: RiskZone[],
   shelters: Shelter[],
+  trafficEvents: TrafficEvent[] = [],
   limit = 5,
 ): AggregatedRiskZone[] =>
   riskZones
@@ -71,7 +83,7 @@ export const aggregateRiskZones = (
         severityScore: LEVEL_SCORE[zone.level],
         affectedPeople: virtualAffectedPeople(zone, impactShelters),
         impactShelters,
-        controlRoads: CONTROL_ROADS[zone.id] ?? [`${zone.name} 인접 도로`],
+        controlRoads: nearbyControlRoads(zone, trafficEvents),
         reasons: zone.reasons.slice(0, 3),
       };
     })

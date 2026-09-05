@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$ProjectRef = "qsuxpldbwzqnomvtmtyw"
+$ProjectRef = "qlaeegqbopzwqdcbjbxc"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $EnvPath = Join-Path $Root ".env"
 $ServiceAccountPath = Join-Path $Root "apikey.json"
@@ -42,8 +42,14 @@ $RequiredEnv = @(
   "NAVER_DIRECTIONS_CLIENT_SECRET",
   "TMAP_APP_KEY",
   "KMA_SERVICE_KEY",
+  "KMA_WARNING_SERVICE_KEY",
   "HRFCO_SERVICE_KEY",
   "DISASTER_MSG_SERVICE_KEY",
+  "VAPID_PUBLIC_KEY",
+  "VAPID_PRIVATE_KEY",
+  "VAPID_SUBJECT",
+  "RISK_MONITOR_CRON_SECRET",
+  "CCTV_ANALYSIS_DAILY_LIMIT",
   "VERTEX_AI_PROJECT_ID",
   "VERTEX_AI_LOCATION",
   "VERTEX_AI_MODEL"
@@ -72,8 +78,7 @@ try {
     "ITS_CCTV_API_KEY",
     "NAVER_SEARCH_CLIENT_ID",
     "NAVER_SEARCH_CLIENT_SECRET",
-    "SENSOR_API_KEY",
-    "FCM_SERVER_KEY"
+    "SENSOR_API_KEY"
   )) {
     if (-not [string]::IsNullOrWhiteSpace($EnvValues[$Name])) {
       $SecretLines.Add("$Name=$($EnvValues[$Name])")

@@ -1,28 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { API_CACHE_TTL_MS } from "@/lib/api/cache";
+import { measureApiHealth } from "@/lib/api/measureApiHealth";
 import { parseDisasterMessages } from "@/lib/api/disasterMsg";
 import type { ApiResult, DisasterMessage } from "@/lib/api/types";
 import { supabase } from "@/integrations/supabase/client";
-
-const FALLBACK_MESSAGES: DisasterMessage[] = [
-  {
-    id: "demo-msg-gangnam-rain",
-    region: "서울 강남구",
-    body: "강남역 일대 저지대 침수 위험. 하천변과 지하차도 접근을 피하세요.",
-    issuedAt: "2026-06-11T14:30:00+09:00",
-    source: "demo",
-  },
-];
+import { API_HEALTH_SOURCE_NAMES } from "@/store/apiHealth";
 
 export const createDisasterMessagesFallbackResult = (
   now: () => number = () => Date.now(),
   options: { error?: string } = {},
 ): ApiResult<DisasterMessage[]> => ({
-  data: FALLBACK_MESSAGES,
+  data: [],
   status: "FALLBACK",
   timestamp: new Date(now()).toISOString(),
-  source: "demo-disaster-messages",
+  source: "MOIS-DSSP-IF-00247",
   error: options.error,
 });
 
@@ -59,24 +51,34 @@ export const fetchDisasterMessages = async (
 ): Promise<DisasterMessage[]> => parseDisasterMessages(await fetcher(request));
 
 export const useDisasterMessages = ({
-  region = "서울 강남구",
+  region = "",
   startDate = formatDisasterMessageStartDate(),
   pageNo = 1,
   numOfRows = 20,
   client,
-}: DisasterMessagesRequest & { client?: DisasterMessagesFetcher } = {}) => {
+  enabled = true,
+}: DisasterMessagesRequest & { client?: DisasterMessagesFetcher; enabled?: boolean } = {}) => {
   const query = useQuery({
     queryKey: ["disaster-messages", region, startDate, pageNo, numOfRows],
     staleTime: API_CACHE_TTL_MS.DISASTER_MESSAGES,
-    queryFn: async (): Promise<ApiResult<DisasterMessage[]>> => {
-      const data = await fetchDisasterMessages({ region, startDate, pageNo, numOfRows }, client);
-      return {
-        data,
-        status: "OK",
-        timestamp: new Date().toISOString(),
+    enabled: enabled && region.length > 0,
+    queryFn: (): Promise<ApiResult<DisasterMessage[]>> =>
+      measureApiHealth({
+        name: API_HEALTH_SOURCE_NAMES.disasterMessages,
         source: "MOIS-DSSP-IF-00247",
-      };
-    },
+        run: async () => {
+          const data = await fetchDisasterMessages(
+            { region, startDate, pageNo, numOfRows },
+            client,
+          );
+          return {
+            data,
+            status: "OK",
+            timestamp: new Date().toISOString(),
+            source: "MOIS-DSSP-IF-00247",
+          };
+        },
+      }),
     retry: client ? false : 2,
     retryDelay: 1000,
   });
@@ -92,5 +94,7 @@ export const useDisasterMessages = ({
           : "Disaster messages request is loading",
       }),
     isLoading: query.isLoading,
+    isFetching: query.isFetching,
+    isFetchedAfterMount: query.isFetchedAfterMount,
   };
 };

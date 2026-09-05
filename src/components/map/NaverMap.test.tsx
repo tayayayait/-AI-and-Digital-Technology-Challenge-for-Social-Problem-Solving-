@@ -109,6 +109,7 @@ const createNaverMapsMock = (boundsOverride?: NaverMapsBoundsInstance) => {
     Marker: vi.fn(function Marker(this: Record<string, unknown>, options: Record<string, unknown>) {
       this.options = options;
       this.setMap = vi.fn();
+      this.setZIndex = vi.fn();
       const icon = options.icon as { content?: string } | undefined;
       if (mapContainer && icon?.content) {
         const template = document.createElement("template");
@@ -172,6 +173,22 @@ describe("NaverMap", () => {
     render(<NaverMap center={center} clientId="" />);
 
     expect(screen.getByRole("alert")).toHaveTextContent("VITE_NAVER_MAPS_CLIENT_ID");
+  });
+
+  test("shows a localized fallback message when the SDK request fails", async () => {
+    render(<NaverMap center={center} clientId="client-id" />);
+
+    const script = await waitFor(() => {
+      const element = document.querySelector<HTMLScriptElement>("script[data-naver-maps-sdk]");
+      expect(element).not.toBeNull();
+      return element!;
+    });
+    act(() => script.dispatchEvent(new Event("error")));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "네이버 지도를 불러오지 못했습니다. 대체 지도로 위치를 선택하세요.",
+    );
+    expect(screen.getByRole("alert")).not.toHaveTextContent("Naver Maps SDK load failed");
   });
 
   test("keeps a selectable fallback map when the SDK is unavailable", async () => {
@@ -307,6 +324,49 @@ describe("NaverMap", () => {
     expect(screen.queryByRole("dialog", { name: /대피소 상세/ })).not.toBeInTheDocument();
   });
 
+  test("removes markers that exit the bounds and adds markers that enter the bounds", async () => {
+    const { maps } = createNaverMapsMock();
+    window.naver = { maps };
+    const markerConstructorSpy = vi.spyOn(maps, "Marker");
+
+    const shelter2: Shelter = {
+      id: "s-02",
+      name: "도곡중학교",
+      address: "서울 강남구 남부순환로",
+      position: { lat: 37.4889, lng: 127.0431 },
+      capacity: 350,
+      status: "OPERATING",
+      underground: false,
+      type: "이재민 임시주거시설",
+    };
+
+    const { rerender } = render(
+      <NaverMap center={center} clientId="client-id" shelters={[shelter]} />,
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: /대피소: 역삼초등학교 체육관/ }),
+      ).toBeInTheDocument(),
+    );
+
+    const initialCallCount = markerConstructorSpy.mock.calls.length;
+
+    // shelter가 빠지고 shelter2가 들어옴
+    rerender(<NaverMap center={center} clientId="client-id" shelters={[shelter2]} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: /대피소: 도곡중학교/ })).toBeInTheDocument(),
+    );
+    expect(markerConstructorSpy.mock.calls.length).toBeGreaterThan(initialCallCount);
+
+    const initialMarkerInstance = markerConstructorSpy.mock.results.find(
+      (result) =>
+        (result.value as { options?: { title?: string } }).options?.title === shelter.name,
+    )?.value as { setMap: ReturnType<typeof vi.fn> } | undefined;
+    expect(initialMarkerInstance?.setMap).toHaveBeenCalledWith(null);
+  });
+
   test("opens traffic event detail when the incident marker is clicked directly", async () => {
     const user = userEvent.setup();
     const { maps } = createNaverMapsMock();
@@ -423,9 +483,7 @@ describe("NaverMap", () => {
 
     render(<NaverMap center={center} clientId="client-id" onBoundsChanged={onBoundsChanged} />);
 
-    await waitFor(() =>
-      expect(listeners.some(({ eventName }) => eventName === "idle")).toBe(true),
-    );
+    await waitFor(() => expect(listeners.some(({ eventName }) => eventName === "idle")).toBe(true));
 
     vi.useFakeTimers();
     const idleListeners = listeners.filter(({ eventName }) => eventName === "idle");
@@ -471,6 +529,30 @@ describe("NaverMap", () => {
 
     expect(dialog).toHaveTextContent("Near CCTV");
     expect(dialog).not.toHaveTextContent("Far CCTV");
+  });
+
+  test("does not recreate every CCTV marker when one marker is selected", async () => {
+    const user = userEvent.setup();
+    const { maps } = createNaverMapsMock();
+    window.naver = { maps };
+    const markerConstructorSpy = vi.spyOn(maps, "Marker");
+
+    render(<NaverMap center={center} clientId="client-id" cctvs={[farCctv, nearCctv]} />);
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "CCTV: Near CCTV" })).toBeInTheDocument(),
+    );
+    const initialMarkerCount = markerConstructorSpy.mock.calls.length;
+
+    await user.click(screen.getByRole("button", { name: "CCTV: Near CCTV" }));
+    expect(screen.getByRole("dialog", { name: /Near CCTV/ })).toBeInTheDocument();
+
+    expect(markerConstructorSpy.mock.calls).toHaveLength(initialMarkerCount);
+    const selectedMarker = markerConstructorSpy.mock.results.find(
+      (result) =>
+        (result.value as { options?: { title?: string } }).options?.title === nearCctv.name,
+    )?.value as { setZIndex: ReturnType<typeof vi.fn> } | undefined;
+    expect(selectedMarker?.setZIndex).toHaveBeenCalledWith(100);
   });
 
   test("creates a SafeMap WMS ground overlay when a layer is configured", async () => {

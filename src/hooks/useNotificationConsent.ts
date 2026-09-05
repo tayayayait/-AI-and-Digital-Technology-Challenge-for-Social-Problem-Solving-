@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
@@ -7,7 +7,7 @@ import {
   getBrowserNotificationPermission,
   notificationConsentSchema,
   parseStoredNotificationConsent,
-  requestNotificationPermissionWithConsent,
+  type BrowserNotificationPermission,
   type NotificationConsentState,
 } from "@/lib/notifications/consent";
 
@@ -53,26 +53,29 @@ export const useNotificationConsent = () => {
     saveState(next);
   }, []);
 
-  const enablePush = async () => {
-    const result = await requestNotificationPermissionWithConsent(true);
+  const enablePush = (permission: BrowserNotificationPermission) => {
+    const allowed = permission === "granted";
     const now = new Date().toISOString();
     const next = notificationConsentSchema.parse({
       ...state,
-      pushConsent: result.allowed,
-      browserPermission: result.permission,
+      pushConsent: allowed,
+      browserPermission: permission,
       backgroundLocationEnabled: false,
-      consentedAt: result.allowed ? now : null,
-      revokedAt: result.allowed ? null : now,
+      consentedAt: allowed ? now : null,
+      revokedAt: allowed ? null : now,
     });
 
     setState(next);
     saveState(next);
     void syncState(next).catch(() => undefined);
     setMessage(
-      result.allowed
+      allowed
         ? "푸시 알림 동의가 저장됐습니다. 백그라운드 위치 추적은 비활성 상태입니다."
-        : "브라우저 알림 권한이 허용되지 않아 푸시 알림이 비활성 상태입니다.",
+        : permission === "denied"
+          ? "알림 권한이 차단됐습니다. 브라우저 설정에서 알림 권한을 변경할 수 있습니다."
+          : "이 브라우저에서는 푸시 알림을 사용할 수 없습니다.",
     );
+    return { allowed, permission };
   };
 
   const revokePush = () => {
@@ -91,13 +94,10 @@ export const useNotificationConsent = () => {
     );
   };
 
-  return useMemo(
-    () => ({
-      state,
-      message,
-      enablePush,
-      revokePush,
-    }),
-    [message, state],
-  );
+  return {
+    state,
+    message,
+    enablePush,
+    revokePush,
+  };
 };

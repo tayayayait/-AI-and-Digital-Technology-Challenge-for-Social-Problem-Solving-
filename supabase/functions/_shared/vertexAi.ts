@@ -11,6 +11,13 @@ export interface VertexAiAuthConfig {
 
 export type EnvGetter = (name: string) => string | undefined;
 
+export const buildInlineImagePart = (frame: { mimeType: string; data: string }) => ({
+  inlineData: {
+    mimeType: frame.mimeType,
+    data: frame.data,
+  },
+});
+
 const DEFAULT_VERTEX_LOCATION = "us-central1";
 const DEFAULT_VERTEX_MODEL = "gemini-2.5-flash";
 const CLOUD_PLATFORM_SCOPE = "https://www.googleapis.com/auth/cloud-platform";

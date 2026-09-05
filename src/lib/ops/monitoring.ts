@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { ApiHealthStatus } from "@/hooks/useApiStatus";
+import type { ApiStatus } from "@/lib/api/types";
 import { redactSensitiveText } from "@/lib/ops/audit";
 
 const parseTimestamp = (value: string): string | null => {
@@ -10,7 +11,7 @@ const parseTimestamp = (value: string): string | null => {
 };
 
 export const toApiHealthMetricInsert = (
-  item: ApiHealthStatus,
+  item: ApiHealthStatus & { status: ApiStatus },
 ): TablesInsert<"api_health_metrics"> => ({
   api_name: item.name,
   status: item.status,
@@ -26,23 +27,37 @@ export const toApiHealthMetricInsert = (
 });
 
 export const calculateApiObservability = (items: ApiHealthStatus[]) => {
-  const responseTimes = items
+  const measuredItems = items.filter((item) => item.status !== "UNQUERIED");
+  const responseTimes = measuredItems
     .map((item) => item.responseTime)
     .filter((value): value is number => typeof value === "number");
-  const fallbackCount = items.filter((item) => item.status === "FALLBACK").length;
-  const failedCount = items.filter((item) => item.status === "FAILED").length;
+  const fallbackCount = measuredItems.filter((item) => item.status === "FALLBACK").length;
+  const failedCount = measuredItems.filter((item) => item.status === "FAILED").length;
 
   return {
     averageResponseTimeMs: responseTimes.length
       ? Math.round(responseTimes.reduce((sum, value) => sum + value, 0) / responseTimes.length)
       : null,
-    fallbackRatePercent: items.length ? Math.round((fallbackCount / items.length) * 100) : 0,
+    fallbackRatePercent: measuredItems.length
+      ? Math.round((fallbackCount / measuredItems.length) * 100)
+      : 0,
     failedCount,
   };
 };
 
 export const recordApiHealthMetrics = async (items: ApiHealthStatus[]) => {
-  const rows = items.map(toApiHealthMetricInsert);
+  const measuredItems = items.filter(
+    (item): item is ApiHealthStatus & { status: ApiStatus } => item.status !== "UNQUERIED",
+  );
+  if (measuredItems.length === 0) return { ok: true as const };
+
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+  if (sessionError || !session) return { ok: true as const };
+
+  const rows = measuredItems.map(toApiHealthMetricInsert);
   const { error } = await supabase.from("api_health_metrics").insert(rows);
 
   if (error) {

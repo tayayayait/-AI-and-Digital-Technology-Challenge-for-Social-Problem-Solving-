@@ -1,1187 +1,1187 @@
 ﻿[
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  142,
-        "Line":  "        prev.minX === qBounds.minX \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  143,
-        "Line":  "        prev.maxX === qBounds.maxX \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  144,
-        "Line":  "        prev.minY === qBounds.minY \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  186,
-        "Line":  "                  {groupIdx \u003e 0 \u0026\u0026 \u003cdiv className=\"h-4 w-px bg-slate-200\" aria-hidden /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  244,
-        "Line":  "        {!isLoading \u0026\u0026 result.status !== \"OK\" \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
-        "LineNumber":  257,
-        "Line":  "        {!isLoading \u0026\u0026 cameras.length === 0 \u0026\u0026 result.status === \"OK\" \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
-        "LineNumber":  71,
-        "Line":  "      {query \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
-        "LineNumber":  85,
-        "Line":  "      {error \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
-        "LineNumber":  91,
-        "Line":  "      {results.length \u003e 0 \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\BaseMap.tsx",
-        "LineNumber":  184,
-        "Line":  "      {selectedShelter \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\ClientMap.tsx",
-        "LineNumber":  1,
-        "Line":  "import { useEffect, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\ClientMap.tsx",
-        "LineNumber":  39,
-        "Line":  "  useEffect(() =\u003e setMounted(true), []);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.test.tsx",
-        "LineNumber":  86,
-        "Line":  "      if (mapContainer \u0026\u0026 icon?.content) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  4,
-        "Line":  "  useCallback,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  5,
-        "Line":  "  useEffect,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  6,
-        "Line":  "  useMemo,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  125,
-        "Line":  "  if (key === \"lat\" \u0026\u0026 typeof point.y === \"number\") return point.y;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  126,
-        "Line":  "  if (key === \"lng\" \u0026\u0026 typeof point.x === \"number\") return point.x;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  127,
-        "Line":  "  if (key === \"lat\" \u0026\u0026 typeof point._lat === \"number\") return point._lat;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  128,
-        "Line":  "  if (key === \"lng\" \u0026\u0026 typeof point._lng === \"number\") return point._lng;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  265,
-        "Line":  "  const mapStyle: CSSProperties = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  274,
-        "Line":  "  const shelterById = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  279,
-        "Line":  "  const cctvById = useMemo(() =\u003e new Map(cctvs.map((cctv) =\u003e [cctv.id, cctv])), [cctvs]);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  281,
-        "Line":  "  const trafficEventById = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  286,
-        "Line":  "  const selectShelter = useCallback("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  296,
-        "Line":  "  const selectCctv = useCallback("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  306,
-        "Line":  "  const selectTrafficEvent = useCallback("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  316,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  321,
-        "Line":  "  const moveToCurrentLocation = useCallback(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  336,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  346,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  356,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  366,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  415,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  428,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  437,
-        "Line":  "      if (shelterButton \u0026\u0026 container.contains(shelterButton)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  447,
-        "Line":  "      if (cctvButton \u0026\u0026 container.contains(cctvButton)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  457,
-        "Line":  "      if (trafficEventButton \u0026\u0026 container.contains(trafficEventButton)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  470,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  506,
-        "Line":  "        if (onBoundsChanged \u0026\u0026 map.getBounds) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  526,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  564,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  621,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  666,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  702,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  737,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  806,
-        "Line":  "      {showCurrentLocationButton \u0026\u0026 mapReadyVersion \u003e 0 \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  821,
-        "Line":  "      {error \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  830,
-        "Line":  "      {selectedShelter \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  838,
-        "Line":  "      {selectedCctv \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  842,
-        "Line":  "      {selectedTrafficEvent \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  851,
-        "Line":  "        {showCenterMarker \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
-        "LineNumber":  856,
-        "Line":  "        {selectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\WmsLegend.tsx",
-        "LineNumber":  18,
-        "Line":  "      {isOpen \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\notifications\\NotificationConsentCard.tsx",
-        "LineNumber":  7,
-        "Line":  "  const enabled = state.pushConsent \u0026\u0026 state.browserPermission === \"granted\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ops\\NoticeGenerator.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ops\\NoticeGenerator.tsx",
-        "LineNumber":  89,
-        "Line":  "  const fallback = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  78,
-        "Line":  "        ) : aiAdvice \u0026\u0026 aiAdvice.verified !== false ? ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  84,
-        "Line":  "      {!isAiLoading \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  93,
-        "Line":  "          {aiAdvice \u0026\u0026 aiAdvice.verified === false \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  101,
-        "Line":  "          {aiAdvice \u0026\u0026 aiAdvice.verified !== false ? ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  113,
-        "Line":  "      {shelter \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
-        "LineNumber":  117,
-        "Line":  "          {distanceMeters != null \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  21,
-        "Line":  "  const hasAlert = alerts \u0026\u0026 alerts.length \u003e 0;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  24,
-        "Line":  "    !rainfallMmPerHour \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  25,
-        "Line":  "    (!precipitationType || precipitationType === \"none\") \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  26,
-        "Line":  "    !hasAlert \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  27,
-        "Line":  "    temperatureCelsius === undefined \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  60,
-        "Line":  "              {temperatureCelsius !== undefined \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  69,
-        "Line":  "              {humidityPercent !== undefined \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
-        "LineNumber":  79,
-        "Line":  "            {hasAlert \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\sensors\\SensorIntegration.tsx",
-        "LineNumber":  1,
-        "Line":  "import { useEffect } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\sensors\\SensorIntegration.tsx",
-        "LineNumber":  7,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
-        "LineNumber":  148,
-        "Line":  "  React.useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
-        "LineNumber":  159,
-        "Line":  "        modifiers.selected \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
-        "LineNumber":  160,
-        "Line":  "        !modifiers.range_start \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
-        "LineNumber":  161,
-        "Line":  "        !modifiers.range_end \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  55,
-        "Line":  "  const onSelect = React.useCallback((api: CarouselApi) =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  64,
-        "Line":  "  const scrollPrev = React.useCallback(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  68,
-        "Line":  "  const scrollNext = React.useCallback(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  72,
-        "Line":  "  const handleKeyDown = React.useCallback("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  85,
-        "Line":  "  React.useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
-        "LineNumber":  93,
-        "Line":  "  React.useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  126,
-        "Line":  "    const tooltipLabel = React.useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  135,
-        "Line":  "        !labelKey \u0026\u0026 typeof label === \"string\""
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  156,
-        "Line":  "    const nestLabel = payload.length === 1 \u0026\u0026 indicator !== \"dot\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  180,
-        "Line":  "                    indicator === \"dot\" \u0026\u0026 \"items-center\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  183,
-        "Line":  "                  {formatter \u0026\u0026 item?.value !== undefined \u0026\u0026 item.name ? ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  190,
-        "Line":  "                        !hideIndicator \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  199,
-        "Line":  "                                \"my-0.5\": nestLabel \u0026\u0026 indicator === \"dashed\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  223,
-        "Line":  "                        {item.value \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  279,
-        "Line":  "              {itemConfig?.icon \u0026\u0026 !hideIcon ? ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  305,
-        "Line":  "    \"payload\" in payload \u0026\u0026 typeof payload.payload === \"object\" \u0026\u0026 payload.payload !== null"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  311,
-        "Line":  "  if (key in payload \u0026\u0026 typeof payload[key as keyof typeof payload] === \"string\") {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  314,
-        "Line":  "    payloadPayload \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
-        "LineNumber":  315,
-        "Line":  "    key in payloadPayload \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
-        "LineNumber":  29,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
-        "LineNumber":  82,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
-        "LineNumber":  143,
-        "Line":  "    className={cn(\"px-2 py-1.5 text-sm font-semibold text-foreground\", inset \u0026\u0026 \"pl-8\", className)}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
-        "LineNumber":  31,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
-        "LineNumber":  86,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
-        "LineNumber":  147,
-        "Line":  "    className={cn(\"px-2 py-1.5 text-sm font-semibold\", inset \u0026\u0026 \"pl-8\", className)}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\form.tsx",
-        "LineNumber":  95,
-        "Line":  "      className={cn(error \u0026\u0026 \"text-destructive\", className)}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\input-otp.tsx",
-        "LineNumber":  43,
-        "Line":  "        isActive \u0026\u0026 \"z-10 ring-1 ring-ring\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\input-otp.tsx",
-        "LineNumber":  49,
-        "Line":  "      {hasFakeCaret \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
-        "LineNumber":  67,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
-        "LineNumber":  123,
-        "Line":  "      inset \u0026\u0026 \"pl-8\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
-        "LineNumber":  184,
-        "Line":  "    className={cn(\"px-2 py-1.5 text-sm font-semibold\", inset \u0026\u0026 \"pl-8\", className)}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\resizable.tsx",
-        "LineNumber":  29,
-        "Line":  "    {withHandle \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\scroll-area.tsx",
-        "LineNumber":  33,
-        "Line":  "      orientation === \"vertical\" \u0026\u0026 \"h-full w-2.5 border-l border-l-transparent p-[1px]\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\scroll-area.tsx",
-        "LineNumber":  34,
-        "Line":  "      orientation === \"horizontal\" \u0026\u0026 \"h-2.5 flex-col border-t border-t-transparent p-[1px]\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\select.tsx",
-        "LineNumber":  72,
-        "Line":  "        position === \"popper\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\select.tsx",
-        "LineNumber":  83,
-        "Line":  "          position === \"popper\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  76,
-        "Line":  "    const setOpen = React.useCallback("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  92,
-        "Line":  "    const toggleSidebar = React.useCallback(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  97,
-        "Line":  "    React.useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  99,
-        "Line":  "        if (event.key === SIDEBAR_KEYBOARD_SHORTCUT \u0026\u0026 (event.metaKey || event.ctrlKey)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  113,
-        "Line":  "    const contextValue = React.useMemo\u003cSidebarContextProps\u003e("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  605,
-        "Line":  "        showOnHover \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  642,
-        "Line":  "  const width = React.useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  653,
-        "Line":  "      {showIcon \u0026\u0026 \u003cSkeleton className=\"size-4 rounded-md\" data-sidebar=\"menu-skeleton-icon\" /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  708,
-        "Line":  "        size === \"sm\" \u0026\u0026 \"text-xs\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
-        "LineNumber":  709,
-        "Line":  "        size === \"md\" \u0026\u0026 \"text-sm\","
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\use-mobile.tsx",
-        "LineNumber":  8,
-        "Line":  "  React.useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useApiStatus.ts",
-        "LineNumber":  1,
-        "Line":  "import { useMemo } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useApiStatus.ts",
-        "LineNumber":  35,
-        "Line":  "  useMemo(() =\u003e summarizeApiStatus(results), [results]);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useCctvFeeds.ts",
-        "LineNumber":  65,
-        "Line":  "    enabled: enabled \u0026\u0026 (!!bounds || !!center),"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
-        "LineNumber":  1,
-        "Line":  "import { useEffect, useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
-        "LineNumber":  44,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
-        "LineNumber":  94,
-        "Line":  "  return useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
-        "LineNumber":  1,
-        "Line":  "import { useState, useEffect } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
-        "LineNumber":  13,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
-        "LineNumber":  42,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRiskAssessment.ts",
-        "LineNumber":  1,
-        "Line":  "import { useEffect } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRiskAssessment.ts",
-        "LineNumber":  43,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
-        "LineNumber":  68,
-        "Line":  "    .filter((shelter) =\u003e shelter.status !== \"EXCLUDED\" \u0026\u0026 !shelter.underground)"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
-        "LineNumber":  132,
-        "Line":  "  const bothFailed = walk.status === \"FAILED\" \u0026\u0026 drive.status === \"FAILED\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
-        "LineNumber":  190,
-        "Line":  "    isLoading: enabled \u0026\u0026 query.isLoading,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useWmsLayers.ts",
-        "LineNumber":  1,
-        "Line":  "import { useMemo } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useWmsLayers.ts",
-        "LineNumber":  8,
-        "Line":  "  return useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\ai\\validateAiResponse.ts",
-        "LineNumber":  64,
-        "Line":  "        (coreNoun.length \u003e 0 \u0026\u0026 term.includes(coreNoun))"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
-        "LineNumber":  57,
-        "Line":  "    input.recommendedRouteId \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
-        "LineNumber":  58,
-        "Line":  "    input.recommendedShelterId \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
-        "LineNumber":  59,
-        "Line":  "    input.riskLevel \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\ops\\aggregateRiskZones.ts",
-        "LineNumber":  46,
-        "Line":  "    .filter(({ shelter, distance }) =\u003e shelter.status !== \"EXCLUDED\" \u0026\u0026 distance \u003c= 2600)"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  73,
-        "Line":  "  if (sensor.seriousLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.seriousLevel) return 80;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  74,
-        "Line":  "  if (sensor.alarmLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.alarmLevel) return 80;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  75,
-        "Line":  "  if (sensor.warningLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.warningLevel) return 55;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  76,
-        "Line":  "  if (sensor.attentionLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.attentionLevel) return 30;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  77,
-        "Line":  "  if (sensor.warningLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.warningLevel * 0.8) return 15;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
-        "LineNumber":  99,
-        "Line":  "  if (missingDataCount \u003e= 2 \u0026\u0026 !hasActiveSensor(input)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  33,
-        "Line":  "  b[0] \u003c= Math.max(a[0], c[0]) \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  34,
-        "Line":  "  b[0] \u003e= Math.min(a[0], c[0]) \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  35,
-        "Line":  "  b[1] \u003c= Math.max(a[1], c[1]) \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  48,
-        "Line":  "  if (o1 !== o2 \u0026\u0026 o3 !== o4) return true;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  49,
-        "Line":  "  if (o1 === 0 \u0026\u0026 onSegment(a1, b1, a2)) return true;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  50,
-        "Line":  "  if (o2 === 0 \u0026\u0026 onSegment(a1, b2, a2)) return true;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  51,
-        "Line":  "  if (o3 === 0 \u0026\u0026 onSegment(b1, a1, b2)) return true;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  52,
-        "Line":  "  return o4 === 0 \u0026\u0026 onSegment(b1, a2, b2);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  63,
-        "Line":  "      yi \u003e point[1] !== yj \u003e point[1] \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  108,
-        "Line":  "  if (start.lat === end.lat \u0026\u0026 start.lng === end.lng) return haversineMeters(point, start);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  135,
-        "Line":  "      classifyTrafficEvent(event) !== \"INFO\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  180,
-        "Line":  "      if (a.status === \"REJECTED\" \u0026\u0026 b.status !== \"REJECTED\") return 1;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
-        "LineNumber":  181,
-        "Line":  "      if (a.status !== \"REJECTED\" \u0026\u0026 b.status === \"REJECTED\") return -1;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\sensors\\sensorAccess.ts",
-        "LineNumber":  89,
-        "Line":  "    if (data \u0026\u0026 Array.isArray(data)) return parseSensorFeeds(data);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\sensors\\sensorAccess.ts",
-        "LineNumber":  102,
-        "Line":  "  feed.status === \"ACTIVE\" \u0026\u0026 feed.lastObservedAt != null;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  13,
-        "Line":  "  !shelter.type.includes(\"민방위\") \u0026\u0026 shelter.status !== \"EXCLUDED\" \u0026\u0026 !shelter.underground;"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  32,
-        "Line":  "    typeof shelter.id === \"string\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  33,
-        "Line":  "    typeof shelter.name === \"string\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  34,
-        "Line":  "    typeof shelter.address === \"string\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  35,
-        "Line":  "    typeof shelter.capacity === \"number\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  36,
-        "Line":  "    typeof shelter.underground === \"boolean\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  37,
-        "Line":  "    typeof shelter.type === \"string\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  40,
-        "Line":  "      shelter.status === \"EXCLUDED\") \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  41,
-        "Line":  "    typeof shelter.position?.lat === \"number\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  42,
-        "Line":  "    Number.isFinite(shelter.position.lat) \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  43,
-        "Line":  "    typeof shelter.position.lng === \"number\" \u0026\u0026"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
-        "LineNumber":  111,
-        "Line":  "    if (data \u0026\u0026 data.length \u003e 0) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\geocoding.ts",
-        "LineNumber":  106,
-        "Line":  "          if (!error \u0026\u0026 data?.items \u0026\u0026 Array.isArray(data.items)) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
-        "LineNumber":  3,
-        "Line":  "import { useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
-        "LineNumber":  29,
-        "Line":  "  const items = useMemo\u003cApiHealthStatus[]\u003e("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
-        "LineNumber":  95,
-        "Line":  "      metricResult.ok \u0026\u0026 auditResult.ok"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\login.tsx",
-        "LineNumber":  58,
-        "Line":  "          {error \u0026\u0026 \u003cp className=\"text-[12px] text-[#991b1b] font-bold\"\u003e{error}\u003c/p\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\messages.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\messages.tsx",
-        "LineNumber":  20,
-        "Line":  "  const [zone] = useMemo(() =\u003e aggregateRiskZones(RISK_ZONES, SHELTERS), []);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\risk-zones.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\risk-zones.tsx",
-        "LineNumber":  18,
-        "Line":  "  const zones = useMemo(() =\u003e aggregateRiskZones(RISK_ZONES, SHELTERS), []);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\shelters.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useMemo } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\shelters.tsx",
-        "LineNumber":  21,
-        "Line":  "  const operations = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\help.tsx",
-        "LineNumber":  95,
-        "Line":  "      {loading \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\help.tsx",
-        "LineNumber":  102,
-        "Line":  "      {answer \u0026\u0026 !loading \u0026\u0026 \u003cAnswerCard q={currentQ ?? \"\"} a={answer} /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useEffect, useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  113,
-        "Line":  "    enabled: showCctv \u0026\u0026 hasSelectedLocation,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  116,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  120,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  132,
-        "Line":  "  const shelterOptions = useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  141,
-        "Line":  "  const selectedShelter = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  146,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  152,
-        "Line":  "  const fallbackRecommended = useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  161,
-        "Line":  "  const routeShelters = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  170,
-        "Line":  "    enabled: hasSelectedLocation \u0026\u0026 routeShelters.length \u003e 0,"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  173,
-        "Line":  "  const homeRoute = useMemo(() =\u003e selectHomeRoute(routeState.routes), [routeState.routes]);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  174,
-        "Line":  "  const routes = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  175,
-        "Line":  "    () =\u003e (homeRoute \u0026\u0026 homeRoute.status !== \"REJECTED\" ? [homeRoute] : []),"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  178,
-        "Line":  "  const routeShelter = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  182,
-        "Line":  "  const recommended = useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  183,
-        "Line":  "    if (homeRoute \u0026\u0026 routeShelter) {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  189,
-        "Line":  "  const aiRouteReasons = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  198,
-        "Line":  "  const aiInput = useMemo\u003cGeminiRouteExplanationInput | null\u003e(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  262,
-        "Line":  "      {riskLevel === \"CRITICAL\" \u0026\u0026 \u003cCriticalWarningBanner /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  264,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  303,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  312,
-        "Line":  "      {!hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  324,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  337,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 \u003cWeatherPanel weather={breakdown.weather} /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  338,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 \u003cSafeMapEvidencePanel evidence={breakdown.safeMapEvidence} /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
-        "LineNumber":  340,
-        "Line":  "      {showPerm \u0026\u0026 !hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  3,
-        "Line":  "import { useEffect, useMemo } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  45,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  120,
-        "Line":  "  const list = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  124,
-        "Line":  "  const shelterById = useMemo("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  128,
-        "Line":  "  const visibleOnMap = useMemo(() =\u003e list.filter((r) =\u003e r.status !== \"REJECTED\"), [list]);"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  129,
-        "Line":  "  const mapShelters = useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  135,
-        "Line":  "  const hasOnlyRejectedRoutes = list.length \u003e 0 \u0026\u0026 list.every((r) =\u003e r.status === \"REJECTED\");"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  152,
-        "Line":  "        {routeState.isLoading \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  328,
-        "Line":  "      {route.riskReasons.length \u003e 0 \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
-        "LineNumber":  341,
-        "Line":  "              {route.status === \"REJECTED\" \u0026\u0026 \u003cspan aria-hidden=\"true\"\u003e🚫\u003c/span\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  2,
-        "Line":  "import { useEffect, useMemo, useState } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  44,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  83,
-        "Line":  "  const sorted = useMemo(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  106,
-        "Line":  "      {!hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  118,
-        "Line":  "      {hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  148,
-        "Line":  "      {selected \u0026\u0026 \u003cShelterSheet shelter={selected} onClose={() =\u003e setSelected(null)} /\u003e}"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
-        "LineNumber":  150,
-        "Line":  "      {showPerm \u0026\u0026 !hasSelectedLocation \u0026\u0026 ("
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\__root.tsx",
-        "LineNumber":  10,
-        "Line":  "import { useEffect, type ReactNode } from \"react\";"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\__root.tsx",
-        "LineNumber":  37,
-        "Line":  "  useEffect(() =\u003e {"
-    },
-    {
-        "Path":  "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\start.ts",
-        "LineNumber":  10,
-        "Line":  "    if (error != null \u0026\u0026 typeof error === \"object\" \u0026\u0026 \"statusCode\" in error) {"
-    }
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 142,
+    "Line": "        prev.minX === qBounds.minX \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 143,
+    "Line": "        prev.maxX === qBounds.maxX \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 144,
+    "Line": "        prev.minY === qBounds.minY \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 186,
+    "Line": "                  {groupIdx \u003e 0 \u0026\u0026 \u003cdiv className=\"h-4 w-px bg-slate-200\" aria-hidden /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 244,
+    "Line": "        {!isLoading \u0026\u0026 result.status !== \"OK\" \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\field\\FieldCctv.tsx",
+    "LineNumber": 257,
+    "Line": "        {!isLoading \u0026\u0026 cameras.length === 0 \u0026\u0026 result.status === \"OK\" \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
+    "LineNumber": 71,
+    "Line": "      {query \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
+    "LineNumber": 85,
+    "Line": "      {error \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\location\\AddressFallback.tsx",
+    "LineNumber": 91,
+    "Line": "      {results.length \u003e 0 \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\BaseMap.tsx",
+    "LineNumber": 184,
+    "Line": "      {selectedShelter \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\ClientMap.tsx",
+    "LineNumber": 1,
+    "Line": "import { useEffect, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\ClientMap.tsx",
+    "LineNumber": 39,
+    "Line": "  useEffect(() =\u003e setMounted(true), []);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.test.tsx",
+    "LineNumber": 86,
+    "Line": "      if (mapContainer \u0026\u0026 icon?.content) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 4,
+    "Line": "  useCallback,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 5,
+    "Line": "  useEffect,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 6,
+    "Line": "  useMemo,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 125,
+    "Line": "  if (key === \"lat\" \u0026\u0026 typeof point.y === \"number\") return point.y;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 126,
+    "Line": "  if (key === \"lng\" \u0026\u0026 typeof point.x === \"number\") return point.x;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 127,
+    "Line": "  if (key === \"lat\" \u0026\u0026 typeof point._lat === \"number\") return point._lat;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 128,
+    "Line": "  if (key === \"lng\" \u0026\u0026 typeof point._lng === \"number\") return point._lng;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 265,
+    "Line": "  const mapStyle: CSSProperties = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 274,
+    "Line": "  const shelterById = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 279,
+    "Line": "  const cctvById = useMemo(() =\u003e new Map(cctvs.map((cctv) =\u003e [cctv.id, cctv])), [cctvs]);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 281,
+    "Line": "  const trafficEventById = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 286,
+    "Line": "  const selectShelter = useCallback("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 296,
+    "Line": "  const selectCctv = useCallback("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 306,
+    "Line": "  const selectTrafficEvent = useCallback("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 316,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 321,
+    "Line": "  const moveToCurrentLocation = useCallback(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 336,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 346,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 356,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 366,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 415,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 428,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 437,
+    "Line": "      if (shelterButton \u0026\u0026 container.contains(shelterButton)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 447,
+    "Line": "      if (cctvButton \u0026\u0026 container.contains(cctvButton)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 457,
+    "Line": "      if (trafficEventButton \u0026\u0026 container.contains(trafficEventButton)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 470,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 506,
+    "Line": "        if (onBoundsChanged \u0026\u0026 map.getBounds) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 526,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 564,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 621,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 666,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 702,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 737,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 806,
+    "Line": "      {showCurrentLocationButton \u0026\u0026 mapReadyVersion \u003e 0 \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 821,
+    "Line": "      {error \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 830,
+    "Line": "      {selectedShelter \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 838,
+    "Line": "      {selectedCctv \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 842,
+    "Line": "      {selectedTrafficEvent \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 851,
+    "Line": "        {showCenterMarker \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\NaverMap.tsx",
+    "LineNumber": 856,
+    "Line": "        {selectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\map\\WmsLegend.tsx",
+    "LineNumber": 18,
+    "Line": "      {isOpen \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\notifications\\NotificationConsentCard.tsx",
+    "LineNumber": 7,
+    "Line": "  const enabled = state.pushConsent \u0026\u0026 state.browserPermission === \"granted\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ops\\NoticeGenerator.tsx",
+    "LineNumber": 2,
+    "Line": "import { useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ops\\NoticeGenerator.tsx",
+    "LineNumber": 89,
+    "Line": "  const fallback = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 78,
+    "Line": "        ) : aiAdvice \u0026\u0026 aiAdvice.verified !== false ? ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 84,
+    "Line": "      {!isAiLoading \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 93,
+    "Line": "          {aiAdvice \u0026\u0026 aiAdvice.verified === false \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 101,
+    "Line": "          {aiAdvice \u0026\u0026 aiAdvice.verified !== false ? ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 113,
+    "Line": "      {shelter \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\ActionCard.tsx",
+    "LineNumber": 117,
+    "Line": "          {distanceMeters != null \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 21,
+    "Line": "  const hasAlert = alerts \u0026\u0026 alerts.length \u003e 0;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 24,
+    "Line": "    !rainfallMmPerHour \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 25,
+    "Line": "    (!precipitationType || precipitationType === \"none\") \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 26,
+    "Line": "    !hasAlert \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 27,
+    "Line": "    temperatureCelsius === undefined \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 60,
+    "Line": "              {temperatureCelsius !== undefined \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 69,
+    "Line": "              {humidityPercent !== undefined \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\risk\\WeatherPanel.tsx",
+    "LineNumber": 79,
+    "Line": "            {hasAlert \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\sensors\\SensorIntegration.tsx",
+    "LineNumber": 1,
+    "Line": "import { useEffect } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\sensors\\SensorIntegration.tsx",
+    "LineNumber": 7,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
+    "LineNumber": 148,
+    "Line": "  React.useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
+    "LineNumber": 159,
+    "Line": "        modifiers.selected \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
+    "LineNumber": 160,
+    "Line": "        !modifiers.range_start \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\calendar.tsx",
+    "LineNumber": 161,
+    "Line": "        !modifiers.range_end \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 55,
+    "Line": "  const onSelect = React.useCallback((api: CarouselApi) =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 64,
+    "Line": "  const scrollPrev = React.useCallback(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 68,
+    "Line": "  const scrollNext = React.useCallback(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 72,
+    "Line": "  const handleKeyDown = React.useCallback("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 85,
+    "Line": "  React.useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\carousel.tsx",
+    "LineNumber": 93,
+    "Line": "  React.useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 126,
+    "Line": "    const tooltipLabel = React.useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 135,
+    "Line": "        !labelKey \u0026\u0026 typeof label === \"string\""
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 156,
+    "Line": "    const nestLabel = payload.length === 1 \u0026\u0026 indicator !== \"dot\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 180,
+    "Line": "                    indicator === \"dot\" \u0026\u0026 \"items-center\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 183,
+    "Line": "                  {formatter \u0026\u0026 item?.value !== undefined \u0026\u0026 item.name ? ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 190,
+    "Line": "                        !hideIndicator \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 199,
+    "Line": "                                \"my-0.5\": nestLabel \u0026\u0026 indicator === \"dashed\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 223,
+    "Line": "                        {item.value \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 279,
+    "Line": "              {itemConfig?.icon \u0026\u0026 !hideIcon ? ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 305,
+    "Line": "    \"payload\" in payload \u0026\u0026 typeof payload.payload === \"object\" \u0026\u0026 payload.payload !== null"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 311,
+    "Line": "  if (key in payload \u0026\u0026 typeof payload[key as keyof typeof payload] === \"string\") {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 314,
+    "Line": "    payloadPayload \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\chart.tsx",
+    "LineNumber": 315,
+    "Line": "    key in payloadPayload \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
+    "LineNumber": 29,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
+    "LineNumber": 82,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\context-menu.tsx",
+    "LineNumber": 143,
+    "Line": "    className={cn(\"px-2 py-1.5 text-sm font-semibold text-foreground\", inset \u0026\u0026 \"pl-8\", className)}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
+    "LineNumber": 31,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
+    "LineNumber": 86,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\dropdown-menu.tsx",
+    "LineNumber": 147,
+    "Line": "    className={cn(\"px-2 py-1.5 text-sm font-semibold\", inset \u0026\u0026 \"pl-8\", className)}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\form.tsx",
+    "LineNumber": 95,
+    "Line": "      className={cn(error \u0026\u0026 \"text-destructive\", className)}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\input-otp.tsx",
+    "LineNumber": 43,
+    "Line": "        isActive \u0026\u0026 \"z-10 ring-1 ring-ring\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\input-otp.tsx",
+    "LineNumber": 49,
+    "Line": "      {hasFakeCaret \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
+    "LineNumber": 67,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
+    "LineNumber": 123,
+    "Line": "      inset \u0026\u0026 \"pl-8\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\menubar.tsx",
+    "LineNumber": 184,
+    "Line": "    className={cn(\"px-2 py-1.5 text-sm font-semibold\", inset \u0026\u0026 \"pl-8\", className)}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\resizable.tsx",
+    "LineNumber": 29,
+    "Line": "    {withHandle \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\scroll-area.tsx",
+    "LineNumber": 33,
+    "Line": "      orientation === \"vertical\" \u0026\u0026 \"h-full w-2.5 border-l border-l-transparent p-[1px]\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\scroll-area.tsx",
+    "LineNumber": 34,
+    "Line": "      orientation === \"horizontal\" \u0026\u0026 \"h-2.5 flex-col border-t border-t-transparent p-[1px]\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\select.tsx",
+    "LineNumber": 72,
+    "Line": "        position === \"popper\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\select.tsx",
+    "LineNumber": 83,
+    "Line": "          position === \"popper\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 76,
+    "Line": "    const setOpen = React.useCallback("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 92,
+    "Line": "    const toggleSidebar = React.useCallback(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 97,
+    "Line": "    React.useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 99,
+    "Line": "        if (event.key === SIDEBAR_KEYBOARD_SHORTCUT \u0026\u0026 (event.metaKey || event.ctrlKey)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 113,
+    "Line": "    const contextValue = React.useMemo\u003cSidebarContextProps\u003e("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 605,
+    "Line": "        showOnHover \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 642,
+    "Line": "  const width = React.useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 653,
+    "Line": "      {showIcon \u0026\u0026 \u003cSkeleton className=\"size-4 rounded-md\" data-sidebar=\"menu-skeleton-icon\" /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 708,
+    "Line": "        size === \"sm\" \u0026\u0026 \"text-xs\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\components\\ui\\sidebar.tsx",
+    "LineNumber": 709,
+    "Line": "        size === \"md\" \u0026\u0026 \"text-sm\","
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\use-mobile.tsx",
+    "LineNumber": 8,
+    "Line": "  React.useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useApiStatus.ts",
+    "LineNumber": 1,
+    "Line": "import { useMemo } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useApiStatus.ts",
+    "LineNumber": 35,
+    "Line": "  useMemo(() =\u003e summarizeApiStatus(results), [results]);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useCctvFeeds.ts",
+    "LineNumber": 65,
+    "Line": "    enabled: enabled \u0026\u0026 (!!bounds || !!center),"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
+    "LineNumber": 1,
+    "Line": "import { useEffect, useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
+    "LineNumber": 44,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useNotificationConsent.ts",
+    "LineNumber": 94,
+    "Line": "  return useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
+    "LineNumber": 1,
+    "Line": "import { useState, useEffect } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
+    "LineNumber": 13,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useReverseGeocode.ts",
+    "LineNumber": 42,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRiskAssessment.ts",
+    "LineNumber": 1,
+    "Line": "import { useEffect } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRiskAssessment.ts",
+    "LineNumber": 43,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
+    "LineNumber": 68,
+    "Line": "    .filter((shelter) =\u003e shelter.status !== \"EXCLUDED\" \u0026\u0026 !shelter.underground)"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
+    "LineNumber": 132,
+    "Line": "  const bothFailed = walk.status === \"FAILED\" \u0026\u0026 drive.status === \"FAILED\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useRoutes.ts",
+    "LineNumber": 190,
+    "Line": "    isLoading: enabled \u0026\u0026 query.isLoading,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useWmsLayers.ts",
+    "LineNumber": 1,
+    "Line": "import { useMemo } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\hooks\\useWmsLayers.ts",
+    "LineNumber": 8,
+    "Line": "  return useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\ai\\validateAiResponse.ts",
+    "LineNumber": 64,
+    "Line": "        (coreNoun.length \u003e 0 \u0026\u0026 term.includes(coreNoun))"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
+    "LineNumber": 57,
+    "Line": "    input.recommendedRouteId \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
+    "LineNumber": 58,
+    "Line": "    input.recommendedShelterId \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\api\\gemini.ts",
+    "LineNumber": 59,
+    "Line": "    input.riskLevel \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\ops\\aggregateRiskZones.ts",
+    "LineNumber": 46,
+    "Line": "    .filter(({ shelter, distance }) =\u003e shelter.status !== \"EXCLUDED\" \u0026\u0026 distance \u003c= 2600)"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 73,
+    "Line": "  if (sensor.seriousLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.seriousLevel) return 80;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 74,
+    "Line": "  if (sensor.alarmLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.alarmLevel) return 80;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 75,
+    "Line": "  if (sensor.warningLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.warningLevel) return 55;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 76,
+    "Line": "  if (sensor.attentionLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.attentionLevel) return 30;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 77,
+    "Line": "  if (sensor.warningLevel != null \u0026\u0026 sensor.currentLevel \u003e= sensor.warningLevel * 0.8) return 15;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\calculateRiskScore.ts",
+    "LineNumber": 99,
+    "Line": "  if (missingDataCount \u003e= 2 \u0026\u0026 !hasActiveSensor(input)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 33,
+    "Line": "  b[0] \u003c= Math.max(a[0], c[0]) \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 34,
+    "Line": "  b[0] \u003e= Math.min(a[0], c[0]) \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 35,
+    "Line": "  b[1] \u003c= Math.max(a[1], c[1]) \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 48,
+    "Line": "  if (o1 !== o2 \u0026\u0026 o3 !== o4) return true;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 49,
+    "Line": "  if (o1 === 0 \u0026\u0026 onSegment(a1, b1, a2)) return true;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 50,
+    "Line": "  if (o2 === 0 \u0026\u0026 onSegment(a1, b2, a2)) return true;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 51,
+    "Line": "  if (o3 === 0 \u0026\u0026 onSegment(b1, a1, b2)) return true;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 52,
+    "Line": "  return o4 === 0 \u0026\u0026 onSegment(b1, a2, b2);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 63,
+    "Line": "      yi \u003e point[1] !== yj \u003e point[1] \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 108,
+    "Line": "  if (start.lat === end.lat \u0026\u0026 start.lng === end.lng) return haversineMeters(point, start);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 135,
+    "Line": "      classifyTrafficEvent(event) !== \"INFO\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 180,
+    "Line": "      if (a.status === \"REJECTED\" \u0026\u0026 b.status !== \"REJECTED\") return 1;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\risk\\routeRanking.ts",
+    "LineNumber": 181,
+    "Line": "      if (a.status !== \"REJECTED\" \u0026\u0026 b.status === \"REJECTED\") return -1;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\sensors\\sensorAccess.ts",
+    "LineNumber": 89,
+    "Line": "    if (data \u0026\u0026 Array.isArray(data)) return parseSensorFeeds(data);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\sensors\\sensorAccess.ts",
+    "LineNumber": 102,
+    "Line": "  feed.status === \"ACTIVE\" \u0026\u0026 feed.lastObservedAt != null;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 13,
+    "Line": "  !shelter.type.includes(\"민방위\") \u0026\u0026 shelter.status !== \"EXCLUDED\" \u0026\u0026 !shelter.underground;"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 32,
+    "Line": "    typeof shelter.id === \"string\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 33,
+    "Line": "    typeof shelter.name === \"string\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 34,
+    "Line": "    typeof shelter.address === \"string\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 35,
+    "Line": "    typeof shelter.capacity === \"number\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 36,
+    "Line": "    typeof shelter.underground === \"boolean\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 37,
+    "Line": "    typeof shelter.type === \"string\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 40,
+    "Line": "      shelter.status === \"EXCLUDED\") \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 41,
+    "Line": "    typeof shelter.position?.lat === \"number\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 42,
+    "Line": "    Number.isFinite(shelter.position.lat) \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 43,
+    "Line": "    typeof shelter.position.lng === \"number\" \u0026\u0026"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\shelters\\shelterApi.ts",
+    "LineNumber": 111,
+    "Line": "    if (data \u0026\u0026 data.length \u003e 0) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\lib\\geocoding.ts",
+    "LineNumber": 106,
+    "Line": "          if (!error \u0026\u0026 data?.items \u0026\u0026 Array.isArray(data.items)) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
+    "LineNumber": 3,
+    "Line": "import { useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
+    "LineNumber": 29,
+    "Line": "  const items = useMemo\u003cApiHealthStatus[]\u003e("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\data-health.tsx",
+    "LineNumber": 95,
+    "Line": "      metricResult.ok \u0026\u0026 auditResult.ok"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\login.tsx",
+    "LineNumber": 58,
+    "Line": "          {error \u0026\u0026 \u003cp className=\"text-[12px] text-[#991b1b] font-bold\"\u003e{error}\u003c/p\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\messages.tsx",
+    "LineNumber": 2,
+    "Line": "import { useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\messages.tsx",
+    "LineNumber": 20,
+    "Line": "  const [zone] = useMemo(() =\u003e aggregateRiskZones(RISK_ZONES, SHELTERS), []);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\risk-zones.tsx",
+    "LineNumber": 2,
+    "Line": "import { useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\risk-zones.tsx",
+    "LineNumber": 18,
+    "Line": "  const zones = useMemo(() =\u003e aggregateRiskZones(RISK_ZONES, SHELTERS), []);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\shelters.tsx",
+    "LineNumber": 2,
+    "Line": "import { useMemo } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\ops\\shelters.tsx",
+    "LineNumber": 21,
+    "Line": "  const operations = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\help.tsx",
+    "LineNumber": 95,
+    "Line": "      {loading \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\help.tsx",
+    "LineNumber": 102,
+    "Line": "      {answer \u0026\u0026 !loading \u0026\u0026 \u003cAnswerCard q={currentQ ?? \"\"} a={answer} /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 2,
+    "Line": "import { useEffect, useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 113,
+    "Line": "    enabled: showCctv \u0026\u0026 hasSelectedLocation,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 116,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 120,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 132,
+    "Line": "  const shelterOptions = useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 141,
+    "Line": "  const selectedShelter = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 146,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 152,
+    "Line": "  const fallbackRecommended = useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 161,
+    "Line": "  const routeShelters = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 170,
+    "Line": "    enabled: hasSelectedLocation \u0026\u0026 routeShelters.length \u003e 0,"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 173,
+    "Line": "  const homeRoute = useMemo(() =\u003e selectHomeRoute(routeState.routes), [routeState.routes]);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 174,
+    "Line": "  const routes = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 175,
+    "Line": "    () =\u003e (homeRoute \u0026\u0026 homeRoute.status !== \"REJECTED\" ? [homeRoute] : []),"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 178,
+    "Line": "  const routeShelter = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 182,
+    "Line": "  const recommended = useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 183,
+    "Line": "    if (homeRoute \u0026\u0026 routeShelter) {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 189,
+    "Line": "  const aiRouteReasons = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 198,
+    "Line": "  const aiInput = useMemo\u003cGeminiRouteExplanationInput | null\u003e(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 262,
+    "Line": "      {riskLevel === \"CRITICAL\" \u0026\u0026 \u003cCriticalWarningBanner /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 264,
+    "Line": "      {hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 303,
+    "Line": "      {hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 312,
+    "Line": "      {!hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 324,
+    "Line": "      {hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 337,
+    "Line": "      {hasSelectedLocation \u0026\u0026 \u003cWeatherPanel weather={breakdown.weather} /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 338,
+    "Line": "      {hasSelectedLocation \u0026\u0026 \u003cSafeMapEvidencePanel evidence={breakdown.safeMapEvidence} /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\index.tsx",
+    "LineNumber": 340,
+    "Line": "      {showPerm \u0026\u0026 !hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 3,
+    "Line": "import { useEffect, useMemo } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 45,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 120,
+    "Line": "  const list = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 124,
+    "Line": "  const shelterById = useMemo("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 128,
+    "Line": "  const visibleOnMap = useMemo(() =\u003e list.filter((r) =\u003e r.status !== \"REJECTED\"), [list]);"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 129,
+    "Line": "  const mapShelters = useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 135,
+    "Line": "  const hasOnlyRejectedRoutes = list.length \u003e 0 \u0026\u0026 list.every((r) =\u003e r.status === \"REJECTED\");"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 152,
+    "Line": "        {routeState.isLoading \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 328,
+    "Line": "      {route.riskReasons.length \u003e 0 \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\routes.tsx",
+    "LineNumber": 341,
+    "Line": "              {route.status === \"REJECTED\" \u0026\u0026 \u003cspan aria-hidden=\"true\"\u003e🚫\u003c/span\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 2,
+    "Line": "import { useEffect, useMemo, useState } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 44,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 83,
+    "Line": "  const sorted = useMemo(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 106,
+    "Line": "      {!hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 118,
+    "Line": "      {hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 148,
+    "Line": "      {selected \u0026\u0026 \u003cShelterSheet shelter={selected} onClose={() =\u003e setSelected(null)} /\u003e}"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\shelters.tsx",
+    "LineNumber": 150,
+    "Line": "      {showPerm \u0026\u0026 !hasSelectedLocation \u0026\u0026 ("
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\__root.tsx",
+    "LineNumber": 10,
+    "Line": "import { useEffect, type ReactNode } from \"react\";"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\routes\\__root.tsx",
+    "LineNumber": 37,
+    "Line": "  useEffect(() =\u003e {"
+  },
+  {
+    "Path": "C:\\Users\\dbcdk\\Desktop\\제4회 재난안전데이터 활용 창업경진대회\\src\\start.ts",
+    "LineNumber": 10,
+    "Line": "    if (error != null \u0026\u0026 typeof error === \"object\" \u0026\u0026 \"statusCode\" in error) {"
+  }
 ]

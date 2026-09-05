@@ -19,6 +19,7 @@ interface NaverMapsBoundsInstance {
 
 interface NaverMapsMarkerInstance {
   setMap(map: NaverMapsMapInstance | null): void;
+  setZIndex?(zIndex: number): void;
 }
 
 interface NaverMapsPolylineInstance {

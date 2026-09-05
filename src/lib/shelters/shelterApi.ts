@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { ApiResult } from "@/lib/api/types";
 import type { Shelter, LatLng } from "@/lib/types";
 import { DEMO_CENTER, SHELTERS as MOCK_SHELTERS } from "@/mocks/data";
 import { deriveFloodShelterStatus } from "@/lib/shelters/operationStatus";
@@ -45,7 +46,23 @@ const isValidShelter = (value: unknown): value is Shelter => {
   );
 };
 
-const fetchStaticShelters = async (origin: LatLng): Promise<Shelter[]> => {
+export interface ShelterBounds {
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+}
+
+export const isWithinBounds = (pos: LatLng, bounds: ShelterBounds): boolean =>
+  pos.lat >= bounds.minY &&
+  pos.lat <= bounds.maxY &&
+  pos.lng >= bounds.minX &&
+  pos.lng <= bounds.maxX;
+
+const fetchStaticShelters = async (
+  origin: LatLng,
+  bounds?: ShelterBounds | null,
+): Promise<Shelter[]> => {
   if (typeof window === "undefined" || typeof fetch !== "function") return [];
 
   const response = await fetch("/data/shelters.json");
@@ -54,10 +71,24 @@ const fetchStaticShelters = async (origin: LatLng): Promise<Shelter[]> => {
   const payload: unknown = await response.json();
   if (!Array.isArray(payload)) return [];
 
-  const ranked = payload
+  const validShelters = payload
     .filter(isValidShelter)
     .map((shelter) => withFloodStatus(shelter))
-    .filter(isFloodEvacuationCandidate)
+    .filter(isFloodEvacuationCandidate);
+
+  if (bounds) {
+    const inBounds = validShelters.filter((s) => isWithinBounds(s.position, bounds));
+    return inBounds
+      .map((shelter) => ({
+        shelter,
+        distanceMeters: haversineMeters(origin, shelter.position),
+      }))
+      .sort((a, b) => a.distanceMeters - b.distanceMeters)
+      .slice(0, STATIC_SHELTER_LIMIT)
+      .map(({ shelter }) => shelter);
+  }
+
+  const ranked = validShelters
     .map((shelter) => ({
       shelter,
       distanceMeters: haversineMeters(origin, shelter.position),
@@ -72,37 +103,78 @@ const fetchStaticShelters = async (origin: LatLng): Promise<Shelter[]> => {
     .map(({ shelter }) => shelter);
 };
 
-const fallbackSheltersForOrigin = async (origin: LatLng): Promise<Shelter[]> => {
+interface ShelterFallbackResult {
+  shelters: Shelter[];
+  source: "static-shelters" | "demo-shelters" | "no-current-location-fallback";
+  error?: string;
+}
+
+const fallbackSheltersForOrigin = async (
+  origin: LatLng,
+  bounds?: ShelterBounds | null,
+): Promise<ShelterFallbackResult> => {
+  let fallbackError: string | undefined;
   try {
-    const staticShelters = await fetchStaticShelters(origin);
-    if (staticShelters.length > 0) return staticShelters;
+    const staticShelters = await fetchStaticShelters(origin, bounds);
+    if (staticShelters.length > 0) {
+      return { shelters: staticShelters, source: "static-shelters" };
+    }
   } catch (error) {
+    fallbackError = error instanceof Error ? error.message : "Static shelter data unavailable";
     console.warn("Static shelter data unavailable. Falling back to demo data.", error);
   }
 
-  if (haversineMeters(origin, DEMO_CENTER) <= DEMO_FALLBACK_RADIUS_METERS) {
-    return fallbackShelters();
+  if (bounds) {
+    const demoInBounds = fallbackShelters().filter((s) => isWithinBounds(s.position, bounds));
+    if (demoInBounds.length > 0) {
+      return {
+        shelters: demoInBounds,
+        source: "demo-shelters",
+        error: fallbackError,
+      };
+    }
+  } else if (haversineMeters(origin, DEMO_CENTER) <= DEMO_FALLBACK_RADIUS_METERS) {
+    return {
+      shelters: fallbackShelters(),
+      source: "demo-shelters",
+      error: fallbackError,
+    };
   }
 
   console.warn("No current-location shelter fallback is available outside the demo region.");
-  return [];
+  return {
+    shelters: [],
+    source: "no-current-location-fallback",
+    error: fallbackError ?? "No current-location shelter fallback is available",
+  };
 };
 
-export const fetchShelters = async (origin: LatLng): Promise<Shelter[]> => {
+export const fetchSheltersResult = async (
+  origin: LatLng,
+  bounds?: ShelterBounds | null,
+): Promise<ApiResult<Shelter[]>> => {
+  const timestamp = () => new Date().toISOString();
   try {
-    // 반경 5km 대략적 bounding box 필터링 (1도 위도 = 약 111km)
-    const latDelta = 5000 / 111320;
-    const lngDelta = 5000 / (111320 * Math.cos(origin.lat * (Math.PI / 180)));
+    let query = supabase.from("shelter_operations").select("*");
 
-    const { data, error } = await supabase
-      .from("shelter_operations")
-      .select("*")
-      .gte("lat", origin.lat - latDelta)
-      .lte("lat", origin.lat + latDelta)
-      .gte("lng", origin.lng - lngDelta)
-      .lte("lng", origin.lng + lngDelta)
-      // 최대 100개까지만 가져오도록 제한 (네트워크 최적화)
-      .limit(100);
+    if (bounds) {
+      query = query
+        .gte("lat", bounds.minY)
+        .lte("lat", bounds.maxY)
+        .gte("lng", bounds.minX)
+        .lte("lng", bounds.maxX);
+    } else {
+      // 반경 5km 대략적 bounding box 필터링 (1도 위도 = 약 111km)
+      const latDelta = 5000 / 111320;
+      const lngDelta = 5000 / (111320 * Math.cos(origin.lat * (Math.PI / 180)));
+      query = query
+        .gte("lat", origin.lat - latDelta)
+        .lte("lat", origin.lat + latDelta)
+        .gte("lng", origin.lng - lngDelta)
+        .lte("lng", origin.lng + lngDelta);
+    }
+
+    const { data, error } = await query.limit(STATIC_SHELTER_LIMIT);
 
     if (error) throw error;
 
@@ -124,19 +196,47 @@ export const fetchShelters = async (origin: LatLng): Promise<Shelter[]> => {
         })
         .filter(isFloodEvacuationCandidate);
 
-      if (shelters.length > 0) return shelters;
+      if (shelters.length > 0) {
+        return {
+          data: shelters,
+          status: "OK",
+          timestamp: timestamp(),
+          source: "shelter_operations",
+        };
+      }
       console.warn(
         "Shelter DB returned no flood-safe temporary housing candidates. Falling back to static shelter data.",
       );
     }
 
-    return await fallbackSheltersForOrigin(origin);
+    const fallback = await fallbackSheltersForOrigin(origin, bounds);
+    return {
+      data: fallback.shelters,
+      status: "FALLBACK",
+      timestamp: timestamp(),
+      source: fallback.source,
+      error: fallback.error,
+    };
   } catch (err) {
     console.warn(
       "Exception querying shelter_operations table. Falling back to static shelter data.",
       err,
     );
+    const fallback = await fallbackSheltersForOrigin(origin, bounds);
+    return {
+      data: fallback.shelters,
+      status: fallback.shelters.length > 0 ? "FALLBACK" : "FAILED",
+      timestamp: timestamp(),
+      source: fallback.source,
+      error:
+        err instanceof Error
+          ? err.message
+          : (fallback.error ?? "Shelter operation data unavailable"),
+    };
   }
-
-  return await fallbackSheltersForOrigin(origin);
 };
+
+export const fetchShelters = async (
+  origin: LatLng,
+  bounds?: ShelterBounds | null,
+): Promise<Shelter[]> => (await fetchSheltersResult(origin, bounds)).data ?? [];

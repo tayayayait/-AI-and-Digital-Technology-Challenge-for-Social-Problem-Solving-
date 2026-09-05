@@ -7,18 +7,24 @@ const readReverseGeocodeAddress = (response: NaverMapsReverseGeocodeResponse) =>
   return address?.roadAddress || address?.jibunAddress || address?.englishAddress || null;
 };
 
-export function useReverseGeocode(origin: LatLng, fallback = "서울 강남구") {
-  const [region, setRegion] = useState(fallback);
+const coordinateRegion = (origin: LatLng) =>
+  `선택 위치 ${origin.lat.toFixed(4)}, ${origin.lng.toFixed(4)}`;
+
+export function useReverseGeocode(origin: LatLng, fallback?: string) {
+  const fallbackRegion = fallback ?? coordinateRegion(origin);
+  const [region, setRegion] = useState(fallbackRegion);
 
   useEffect(() => {
-    const service = window.naver?.maps?.Service as any;
-    if (!service?.reverseGeocode) return;
+    setRegion(fallbackRegion);
+    const maps = window.naver?.maps;
+    const service = maps?.Service;
+    if (!maps || !service?.reverseGeocode) return;
 
     service.reverseGeocode(
       {
-        coords: new (window as any).naver.maps.LatLng(origin.lat, origin.lng),
+        coords: new maps.LatLng(origin.lat, origin.lng),
       },
-      (status: string, response: any) => {
+      (status, response) => {
         const okStatus = service.Status?.OK ?? "OK";
         if (status === okStatus) {
           const item = response.v2?.address;
@@ -31,7 +37,7 @@ export function useReverseGeocode(origin: LatLng, fallback = "서울 강남구")
         }
       },
     );
-  }, [origin.lat, origin.lng]);
+  }, [fallbackRegion, origin.lat, origin.lng]);
 
   return region;
 }

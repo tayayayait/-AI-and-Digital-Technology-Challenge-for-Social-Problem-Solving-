@@ -69,8 +69,13 @@ export const DEFAULT_SENSOR_FEEDS: SensorFeed[] = [
   },
 ];
 
-export const parseSensorFeeds = (data: unknown): SensorFeed[] =>
-  sensorFeedSchema.array().parse(data);
+export const parseSensorFeeds = (data: unknown): SensorFeed[] => {
+  const payload =
+    typeof data === "object" && data !== null && Array.isArray((data as { data?: unknown }).data)
+      ? (data as { data: unknown[] }).data
+      : data;
+  return sensorFeedSchema.array().parse(payload);
+};
 
 export const fetchSensorFeeds = async (origin?: LatLng): Promise<SensorFeed[]> => {
   try {
@@ -86,7 +91,7 @@ export const fetchSensorFeeds = async (origin?: LatLng): Promise<SensorFeed[]> =
     const { data, error } = await supabase.functions.invoke("sensors", invokeOptions);
 
     if (error) throw new Error(error.message);
-    if (data && Array.isArray(data)) return parseSensorFeeds(data);
+    if (data) return parseSensorFeeds(data);
     throw new Error("Invalid sensors response");
   } catch (err) {
     console.warn(

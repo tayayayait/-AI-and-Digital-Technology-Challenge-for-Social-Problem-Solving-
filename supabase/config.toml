@@ -1,4 +1,4 @@
-project_id = "qsuxpldbwzqnomvtmtyw"
+project_id = "qlaeegqbopzwqdcbjbxc"
 
 [functions.naver-directions]
 enabled = true
@@ -17,6 +17,11 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/weather/deno.json"
 entrypoint = "./functions/weather/index.ts"
+
+[functions.weather-warning]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/weather-warning/index.ts"
 
 [functions.disaster-messages]
 enabled = true
@@ -55,3 +60,26 @@ entrypoint = "./functions/traffic-events/index.ts"
 enabled = true
 verify_jwt = false
 entrypoint = "./functions/cctv-info/index.ts"
+
+[functions.cctv-analyze]
+enabled = true
+verify_jwt = false
+entrypoint = "./functions/cctv-analyze/index.ts"
+
+[functions.push-subscribe]
+enabled = true
+verify_jwt = false
+import_map = "./functions/push-subscribe/deno.json"
+entrypoint = "./functions/push-subscribe/index.ts"
+
+[functions.push-notify]
+enabled = true
+verify_jwt = false
+import_map = "./functions/push-notify/deno.json"
+entrypoint = "./functions/push-notify/index.ts"
+
+[functions.risk-monitor]
+enabled = true
+verify_jwt = false
+import_map = "./functions/risk-monitor/deno.json"
+entrypoint = "./functions/risk-monitor/index.ts"

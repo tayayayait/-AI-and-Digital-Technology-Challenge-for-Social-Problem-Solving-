@@ -116,23 +116,26 @@ const escapeInfoWindowHtml = (value: string) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
-const readCoordinate = (point: any, key: "lat" | "lng"): number | null => {
+const readCoordinate = (point: unknown, key: "lat" | "lng"): number | null => {
+  if (!point || typeof point !== "object") return null;
+  const record = point as Record<string, unknown>;
+  const coordinate = record[key];
+
   // 네이버 지도는 lat(), lng() 메서드를 제공하거나 y, x 속성을 가짐
-  if (typeof point[key] === "function") {
-    const value = point[key]();
+  if (typeof coordinate === "function") {
+    const value = coordinate.call(point);
     return typeof value === "number" ? value : null;
   }
-  if (typeof point[key] === "number") return point[key];
-  if (key === "lat" && typeof point.y === "number") return point.y;
-  if (key === "lng" && typeof point.x === "number") return point.x;
-  if (key === "lat" && typeof point._lat === "number") return point._lat;
-  if (key === "lng" && typeof point._lng === "number") return point._lng;
+  if (typeof coordinate === "number") return coordinate;
+  if (key === "lat" && typeof record.y === "number") return record.y;
+  if (key === "lng" && typeof record.x === "number") return record.x;
+  if (key === "lat" && typeof record._lat === "number") return record._lat;
+  if (key === "lng" && typeof record._lng === "number") return record._lng;
   return null;
 };
 
-const toWmsBounds = (bounds: any): WmsBounds | null => {
-  if (!bounds || typeof bounds.getSW !== "function" || typeof bounds.getNE !== "function")
-    return null;
+const toWmsBounds = (bounds: NaverMapsBoundsInstance | null | undefined): WmsBounds | null => {
+  if (!bounds) return null;
   const sw = bounds.getSW();
   const ne = bounds.getNE();
   const south = readCoordinate(sw, "lat");
@@ -259,6 +262,26 @@ export function NaverMap({
   const zoomRef = useRef(zoom);
   const boundsChangedTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dismissedShelterIdRef = useRef<string | null>(null);
+  const shelterMarkersRef = useRef<
+    Map<
+      string,
+      {
+        marker: NaverMapsMarkerInstance;
+        listener: NaverMapsEventListener;
+        shelter: Shelter;
+      }
+    >
+  >(new Map());
+  const cctvMarkersRef = useRef<
+    Map<
+      string,
+      {
+        marker: NaverMapsMarkerInstance;
+        listener: NaverMapsEventListener | null;
+        cctv: CctvFeed;
+      }
+    >
+  >(new Map());
   const [error, setError] = useState<string | null>(null);
   const [mapReadyVersion, setMapReadyVersion] = useState(0);
   const [selectedShelter, setSelectedShelter] = useState<Shelter | null>(null);
@@ -306,6 +329,10 @@ export function NaverMap({
     },
     [onCctvClick],
   );
+  const selectCctvRef = useRef(selectCctv);
+  useEffect(() => {
+    selectCctvRef.current = selectCctv;
+  }, [selectCctv]);
 
   const selectTrafficEvent = useCallback(
     (trafficEvent: TrafficEvent) => {
@@ -406,7 +433,7 @@ export function NaverMap({
       })
       .catch((e: unknown) => {
         if (cancelled) return;
-        setError(e instanceof Error ? e.message : "Naver Maps SDK load failed");
+        setError(mapErrorMessage(e));
       });
 
     return () => {
@@ -637,86 +664,138 @@ export function NaverMap({
     };
   }, [mapReadyVersion, riskZones, routes]);
 
-  // 3. Shelters
+  // 3. Shelters: mapReadyVersion 변경 시 기존 마커 전체 정리
+  useEffect(() => {
+    const maps = mapsRef.current;
+    const shelterMarkers = shelterMarkersRef.current;
+    return () => {
+      if (maps) {
+        for (const entry of shelterMarkers.values()) {
+          removeEventListener(maps, entry.listener);
+          detachMapObject(entry.marker);
+        }
+      }
+      shelterMarkers.clear();
+    };
+  }, [mapReadyVersion]);
+
+  // 3. Shelters: 차분(Diff) 갱신 (벗어난 마커 제거, 새 마커 추가, 기존 마커 유지)
   useEffect(() => {
     const map = mapRef.current;
     const maps = mapsRef.current;
     if (!map || !maps) return;
 
-    const markers: NaverMapsMarkerInstance[] = [];
-    const listeners: NaverMapsEventListener[] = [];
-
     try {
+      const nextShelterIds = new Set(shelters.map((s) => s.id));
+
+      // 1) 기존 영역을 벗어난 대피소 마커 제거
+      for (const [id, entry] of shelterMarkersRef.current.entries()) {
+        if (!nextShelterIds.has(id)) {
+          removeEventListener(maps, entry.listener);
+          detachMapObject(entry.marker);
+          shelterMarkersRef.current.delete(id);
+        }
+      }
+
+      // 2) 새로 들어온 영역의 대피소 마커 추가
       for (const shelter of shelters) {
-        const marker = new maps.Marker({
-          map,
-          position: toLatLng(maps, shelter.position),
-          icon: createShelterMarkerIcon(maps, shelter),
-          title: shelter.name,
-        });
-
-        const listener = maps.Event.addListener(marker, "click", () => {
-          // Use centerRef to avoid depending on center
-          const distance = formatDistance(haversineMeters(centerRef.current, shelter.position));
-          const statusLabel = getShelterMarkerStatusLabel(shelter.status);
-          const infoWindow = new maps.InfoWindow({
-            content: `<div style="padding:8px 10px;font-size:13px;line-height:1.45">
-              <strong style="display:block;font-size:14px">${escapeInfoWindowHtml(shelter.name)}</strong>
-              <span>${escapeInfoWindowHtml(statusLabel)} · 현재 위치 기준 ${distance}</span>
-            </div>`,
+        if (!shelterMarkersRef.current.has(shelter.id)) {
+          const marker = new maps.Marker({
+            map,
+            position: toLatLng(maps, shelter.position),
+            icon: createShelterMarkerIcon(maps, shelter),
+            title: shelter.name,
           });
-          infoWindow.open(map, marker);
-          selectShelter(shelter);
-        });
 
-        markers.push(marker);
-        listeners.push(listener);
+          const listener = maps.Event.addListener(marker, "click", () => {
+            const distance = formatDistance(haversineMeters(centerRef.current, shelter.position));
+            const statusLabel = getShelterMarkerStatusLabel(shelter.status);
+            const infoWindow = new maps.InfoWindow({
+              content: `<div style="padding:8px 10px;font-size:13px;line-height:1.45">
+                <strong style="display:block;font-size:14px">${escapeInfoWindowHtml(shelter.name)}</strong>
+                <span>${escapeInfoWindowHtml(statusLabel)} · 현재 위치 기준 ${distance}</span>
+              </div>`,
+            });
+            infoWindow.open(map, marker);
+            selectShelter(shelter);
+          });
+
+          shelterMarkersRef.current.set(shelter.id, { marker, listener, shelter });
+        }
       }
     } catch (error) {
       setError(mapErrorMessage(error));
     }
-
-    return () => {
-      for (const listener of listeners) removeEventListener(maps, listener);
-      for (const marker of markers) detachMapObject(marker);
-    };
   }, [mapReadyVersion, shelters, selectShelter]);
 
-  // 4. CCTVs
+  // 4. CCTVs: map instance 교체 또는 언마운트 시 보관 중인 마커를 정리합니다.
+  useEffect(() => {
+    const maps = mapsRef.current;
+    const cctvMarkers = cctvMarkersRef.current;
+    return () => {
+      if (maps) {
+        for (const entry of cctvMarkers.values()) {
+          if (entry.listener) removeEventListener(maps, entry.listener);
+          detachMapObject(entry.marker);
+        }
+      }
+      cctvMarkers.clear();
+    };
+  }, [mapReadyVersion]);
+
+  // 4. CCTVs: ID 기준 차분 갱신으로 유지 가능한 마커는 재사용합니다.
   useEffect(() => {
     const map = mapRef.current;
     const maps = mapsRef.current;
     if (!map || !maps) return;
 
-    const markers: NaverMapsMarkerInstance[] = [];
-    const listeners: NaverMapsEventListener[] = [];
-
     try {
+      const nextCctvIds = new Set(cctvs.map((cctv) => cctv.id));
+
+      for (const [id, entry] of cctvMarkersRef.current.entries()) {
+        if (!nextCctvIds.has(id)) {
+          if (entry.listener) removeEventListener(maps, entry.listener);
+          detachMapObject(entry.marker);
+          cctvMarkersRef.current.delete(id);
+        }
+      }
+
       for (const cctv of cctvs) {
+        const existing = cctvMarkersRef.current.get(cctv.id);
+        if (existing) {
+          existing.cctv = cctv;
+          continue;
+        }
+
         const marker = new maps.Marker({
           map,
           position: toLatLng(maps, cctv.position),
           icon: createCctvMarkerIcon(maps, cctv.id, cctv.name),
           title: cctv.name,
-          zIndex: selectedCctv?.id === cctv.id ? 100 : 50,
+          zIndex: 50,
         });
 
-        const listener = maps.Event.addListener(marker, "click", () => {
-          selectCctv(cctv);
+        const entry = {
+          marker,
+          listener: null as NaverMapsEventListener | null,
+          cctv,
+        };
+        entry.listener = maps.Event.addListener(marker, "click", () => {
+          selectCctvRef.current(entry.cctv);
         });
-
-        markers.push(marker);
-        listeners.push(listener);
+        cctvMarkersRef.current.set(cctv.id, entry);
       }
     } catch (error) {
       setError(mapErrorMessage(error));
     }
+  }, [mapReadyVersion, cctvs]);
 
-    return () => {
-      for (const listener of listeners) removeEventListener(maps, listener);
-      for (const marker of markers) detachMapObject(marker);
-    };
-  }, [mapReadyVersion, cctvs, selectCctv, selectedCctv]);
+  useEffect(() => {
+    const selectedId = selectedCctvId ?? selectedCctv?.id;
+    for (const [id, entry] of cctvMarkersRef.current.entries()) {
+      entry.marker.setZIndex?.(id === selectedId ? 100 : 50);
+    }
+  }, [cctvs, mapReadyVersion, selectedCctv?.id, selectedCctvId]);
 
   // 5. Traffic Events
   useEffect(() => {

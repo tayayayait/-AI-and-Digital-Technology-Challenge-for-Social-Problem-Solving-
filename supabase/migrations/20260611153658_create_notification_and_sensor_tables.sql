@@ -19,6 +19,9 @@ create table public.notification_preferences (
 
 alter table public.notification_preferences enable row level security;
 
+grant select, insert, update on table public.notification_preferences to authenticated;
+grant all on table public.notification_preferences to service_role;
+
 create trigger notification_preferences_touch_updated_at
 before update on public.notification_preferences
 for each row execute function public.touch_updated_at();
@@ -56,6 +59,10 @@ create table public.sensor_feeds (
 );
 
 alter table public.sensor_feeds enable row level security;
+
+grant select on table public.sensor_feeds to anon;
+grant select, insert, update, delete on table public.sensor_feeds to authenticated;
+grant all on table public.sensor_feeds to service_role;
 
 create trigger sensor_feeds_touch_updated_at
 before update on public.sensor_feeds

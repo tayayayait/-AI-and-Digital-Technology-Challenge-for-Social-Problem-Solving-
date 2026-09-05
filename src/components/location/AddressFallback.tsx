@@ -55,7 +55,7 @@ export function AddressFallback({ onSelect, geocode = geocodeAddress }: AddressF
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             maxLength={80}
-            placeholder="예: 강남역, 역삼로 153"
+            placeholder="예: 시청, 중앙대로 100"
             className="h-[44px] w-full rounded-[10px] border border-[var(--border)] px-3 text-[14px] outline-none focus:border-[var(--primary)] focus:ring-2 focus:ring-[rgba(37,99,235,0.18)]"
           />
         </div>

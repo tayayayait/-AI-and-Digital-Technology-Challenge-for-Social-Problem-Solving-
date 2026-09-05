@@ -65,6 +65,22 @@ const rejectedWalkRoute: RouteResult = {
   shelterId: shelter.id,
 };
 
+const alternativeDriveRoute: RouteResult = {
+  ...driveRoute,
+  id: "drive-2",
+  status: "ALTERNATIVE",
+  name: "대안 차량 경로",
+  safetyScore: 74,
+};
+
+const rejectedDriveRoute: RouteResult = {
+  ...driveRoute,
+  id: "drive-rejected",
+  status: "REJECTED",
+  name: "제외 차량 경로",
+  safetyScore: 21,
+};
+
 const routeState = (overrides: Partial<RoutesState>): RoutesState => ({
   routes: [],
   isLoading: false,
@@ -84,6 +100,12 @@ const routeState = (overrides: Partial<RoutesState>): RoutesState => ({
     },
   },
   fallbackShelters: [],
+  underpassCoverage: {
+    status: "COVERED",
+    label: "전국 등록 지하차도",
+    recordCount: 969,
+    dataDate: "2025-12-31",
+  },
   ...overrides,
 });
 
@@ -110,6 +132,29 @@ describe("RoutesView", () => {
 
     const props = clientMapMock.mock.calls.at(-1)?.[0];
     expect(props?.shelters).toEqual([shelter]);
+  });
+
+  test("자동 긴급 진입에서는 추천 경로만 펼치고 대안·제외 경로를 접는다", () => {
+    clientMapMock.mockClear();
+
+    render(
+      <RoutesView
+        origin={origin}
+        mode="DRIVE"
+        onModeChange={vi.fn()}
+        routeState={routeState({
+          routes: [driveRoute, alternativeDriveRoute, rejectedDriveRoute],
+        })}
+        shelters={[shelter]}
+        autoFocusRecommended
+      />,
+    );
+
+    const collapsed = screen.getByText("대안·제외 경로 2개 보기").closest("details");
+    expect(collapsed).not.toHaveAttribute("open");
+    expect(clientMapMock.mock.lastCall?.[0]).toEqual(
+      expect.objectContaining({ routes: [driveRoute] }),
+    );
   });
 
   test("prefers the available route mode when the selected mode failed", () => {
@@ -186,6 +231,77 @@ describe("RoutesView", () => {
   test("builds a route search object for the selected mode", () => {
     expect(routeModeSearch("DRIVE")).toEqual({ mode: "DRIVE" });
     expect(routeModeSearch("WALK")).toEqual({ mode: "WALK" });
+    expect(routeModeSearch("safest", true)).toEqual({ mode: "safest", auto: true });
+  });
+
+  test("shows the oldest successful route response timestamp", () => {
+    render(
+      <RoutesView
+        origin={origin}
+        mode="DRIVE"
+        onModeChange={vi.fn()}
+        routeState={routeState({
+          routes: [driveRoute],
+          results: {
+            walk: {
+              data: [],
+              status: "OK",
+              timestamp: "2026-06-11T08:00:00.000Z",
+              source: "tmap-pedestrian",
+            },
+            drive: {
+              data: [driveRoute],
+              status: "OK",
+              timestamp: "2026-06-11T09:00:00.000Z",
+              source: "naver-directions",
+            },
+          },
+        })}
+        shelters={[shelter]}
+      />,
+    );
+
+    expect(screen.getByText(/데이터 기준 2026-06-11 17:00/)).toBeInTheDocument();
+  });
+
+  test("shows the underpass dataset coverage and reference date", () => {
+    render(
+      <RoutesView
+        origin={origin}
+        mode="DRIVE"
+        onModeChange={vi.fn()}
+        routeState={routeState({ routes: [driveRoute] })}
+        shelters={[shelter]}
+      />,
+    );
+
+    expect(screen.getByLabelText("지하차도 데이터 범위")).toHaveTextContent(
+      "전국 등록 지하차도 969개 · 2025-12-31 기준",
+    );
+  });
+
+  test("discloses when the selected location is outside underpass coverage", () => {
+    render(
+      <RoutesView
+        origin={origin}
+        mode="DRIVE"
+        onModeChange={vi.fn()}
+        routeState={routeState({
+          routes: [driveRoute],
+          underpassCoverage: {
+            status: "OUTSIDE_COVERAGE",
+            label: "전국 등록 지하차도",
+            recordCount: 969,
+            dataDate: "2025-12-31",
+          },
+        })}
+        shelters={[shelter]}
+      />,
+    );
+
+    expect(screen.getByLabelText("지하차도 데이터 범위")).toHaveTextContent(
+      "현재 위치는 데이터 범위 밖",
+    );
   });
 
   test("requests a mode change when a travel mode tab is clicked", async () => {

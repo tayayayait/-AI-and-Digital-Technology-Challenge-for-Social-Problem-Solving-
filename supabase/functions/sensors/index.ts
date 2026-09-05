@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson } from "../_shared/upstream.ts";
 import {
@@ -194,49 +194,53 @@ const readNearbyFloodForecastFeeds = async (
   return buildFloodForecastSensorFeeds(nearbyForecasts);
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["GET", "POST"]);
-    const origin = await parseOrigin(request);
-    if (!origin) return jsonOk([] satisfies HrfcoSensorFeed[]);
+    try {
+      assertAllowedMethod(request.method, ["GET", "POST"]);
+      const origin = await parseOrigin(request);
+      if (!origin) return jsonOk([] satisfies HrfcoSensorFeed[]);
 
-    const serviceKey = getServiceKey();
-    const [waterlevelStations, rainfallStations] = await Promise.all([
-      getWaterlevelStations(serviceKey),
-      getRainfallStations(serviceKey),
-    ]);
+      const serviceKey = getServiceKey();
+      const [waterlevelStations, rainfallStations] = await Promise.all([
+        getWaterlevelStations(serviceKey),
+        getRainfallStations(serviceKey),
+      ]);
 
-    const results = await Promise.allSettled([
-      readWaterlevelFeed(serviceKey, origin, waterlevelStations),
-      readRainfallFeed(serviceKey, origin, rainfallStations),
-      readNearbyFloodForecastFeeds(serviceKey, origin, waterlevelStations),
-    ]);
+      const results = await Promise.allSettled([
+        readWaterlevelFeed(serviceKey, origin, waterlevelStations),
+        readRainfallFeed(serviceKey, origin, rainfallStations),
+        readNearbyFloodForecastFeeds(serviceKey, origin, waterlevelStations),
+      ]);
 
-    const feeds: HrfcoSensorFeed[] = [];
-    const errors: string[] = [];
+      const feeds: HrfcoSensorFeed[] = [];
+      const errors: string[] = [];
 
-    for (const result of results) {
-      if (result.status === "rejected") {
-        errors.push(result.reason instanceof Error ? result.reason.message : String(result.reason));
-        continue;
+      for (const result of results) {
+        if (result.status === "rejected") {
+          errors.push(
+            result.reason instanceof Error ? result.reason.message : String(result.reason),
+          );
+          continue;
+        }
+        if (Array.isArray(result.value)) {
+          feeds.push(...result.value);
+        } else if (result.value) {
+          feeds.push(result.value);
+        }
       }
-      if (Array.isArray(result.value)) {
-        feeds.push(...result.value);
-      } else if (result.value) {
-        feeds.push(result.value);
+
+      if (feeds.length === 0 && errors.length > 0) {
+        throw new Error(errors.join("; "));
       }
-    }
 
-    if (feeds.length === 0 && errors.length > 0) {
-      throw new Error(errors.join("; "));
+      return jsonOk(feeds);
+    } catch (error) {
+      console.error(`${SOURCE} failed`, error);
+      return edgeError(error);
     }
-
-    return jsonOk(feeds);
-  } catch (error) {
-    console.error(`${SOURCE} failed`, error);
-    return edgeError(error);
-  }
-});
+  }),
+);

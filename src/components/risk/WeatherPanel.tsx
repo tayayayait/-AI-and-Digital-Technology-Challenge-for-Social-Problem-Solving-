@@ -1,5 +1,6 @@
 import { CloudRain, Droplets, AlertTriangle, Thermometer } from "lucide-react";
 import type { WeatherSnapshot } from "@/lib/api/types";
+import type { WeatherWarningAlert } from "@/lib/api/weatherWarning";
 
 const PRECIPITATION_LABEL: Record<string, string> = {
   rain: "비",
@@ -12,13 +13,20 @@ const PRECIPITATION_LABEL: Record<string, string> = {
   none: "맑음",
 };
 
-export function WeatherPanel({ weather }: { weather: WeatherSnapshot | null }) {
+export function WeatherPanel({
+  weather,
+  warnings = [],
+}: {
+  weather: WeatherSnapshot | null;
+  /** 기상청 기상특보. 관측값에서 유도한 값이 아니라 실제 발효 중인 특보다. */
+  warnings?: WeatherWarningAlert[];
+}) {
   if (!weather) return null;
 
-  const { rainfallMmPerHour, humidityPercent, precipitationType, alerts, temperatureCelsius } =
-    weather;
+  const { rainfallMmPerHour, humidityPercent, precipitationType, temperatureCelsius } = weather;
 
-  const hasAlert = alerts && alerts.length > 0;
+  const alerts = warnings;
+  const hasAlert = alerts.length > 0;
 
   const isClear =
     !rainfallMmPerHour &&
@@ -78,6 +86,7 @@ export function WeatherPanel({ weather }: { weather: WeatherSnapshot | null }) {
 
             {hasAlert ? (
               <div className="space-y-1.5 pt-2 border-t border-[var(--border-soft)]">
+                <p className="text-[11px] font-bold text-[var(--text-muted)]">기상청 기상특보</p>
                 {alerts.map((alert) => (
                   <div key={alert.id} className="flex items-start gap-1.5">
                     <AlertTriangle
@@ -92,6 +101,11 @@ export function WeatherPanel({ weather }: { weather: WeatherSnapshot | null }) {
                     />
                     <span className="text-[12px] font-extrabold leading-snug text-[var(--text)]">
                       {alert.title}
+                      {alert.zone ? (
+                        <span className="ml-1 font-bold text-[var(--text-muted)]">
+                          {alert.zone}
+                        </span>
+                      ) : null}
                     </span>
                   </div>
                 ))}

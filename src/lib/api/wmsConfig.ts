@@ -14,8 +14,5 @@ export function getSafeMapWmsLayers(serviceKey = getClientSafeMapServiceKey()): 
   if (!trimmed) return [];
 
   // 침수흔적도와 하천범람지도 모두 지도에 표시합니다.
-  return [
-    createSafeMapFloodTraceWmsLayer(trimmed),
-    createSafeMapRiverFloodWmsLayer(trimmed)
-  ];
+  return [createSafeMapFloodTraceWmsLayer(trimmed), createSafeMapRiverFloodWmsLayer(trimmed)];
 }

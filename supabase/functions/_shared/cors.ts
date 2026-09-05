@@ -20,3 +20,35 @@ export const jsonOk = (body: unknown, init: ResponseInit = {}) =>
   });
 
 export const jsonError = (message: string, status = 500) => jsonOk({ error: message }, { status });
+
+type EdgeHandler = (request: Request) => Response | Promise<Response>;
+
+const addDurationMs = (body: unknown, durationMs: number) => {
+  if (Array.isArray(body)) return { data: body, durationMs };
+  if (typeof body === "object" && body !== null) {
+    return { ...(body as Record<string, unknown>), durationMs };
+  }
+  return { data: body, durationMs };
+};
+
+/** JSON 응답에 Edge Function 내부 처리 시간을 추가한다. */
+export const withJsonDuration =
+  (handler: EdgeHandler, now: () => number = () => performance.now()): EdgeHandler =>
+  async (request) => {
+    const startedAt = now();
+    const response = await handler(request);
+    if (!response.headers.get("content-type")?.includes("application/json")) return response;
+
+    const body = await response
+      .clone()
+      .json()
+      .catch(() => undefined);
+    if (body === undefined) return response;
+
+    const durationMs = Math.max(0, Math.round(now() - startedAt));
+    return new Response(JSON.stringify(addDurationMs(body, durationMs)), {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  };

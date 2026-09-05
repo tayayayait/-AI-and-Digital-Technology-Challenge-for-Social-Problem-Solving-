@@ -1,6 +1,9 @@
 import type { LatLng, RiskZone, RouteResult, TrafficEvent } from "@/lib/types";
-import { haversineMeters } from "@/lib/utils";
 import { classifyTrafficEvent, trafficEventReason } from "./trafficEventRisk";
+import { distanceToRouteMeters } from "./routeDistance";
+import { assessUnderpassRouteRisk, type UnderpassRiskContext } from "./underpassRisk";
+
+export { distanceToRouteMeters } from "./routeDistance";
 
 const zonePenalty: Record<RiskZone["level"], number> = {
   SAFE: 0,
@@ -12,6 +15,11 @@ const zonePenalty: Record<RiskZone["level"], number> = {
 const TRAFFIC_EVENT_MATCH_RADIUS_M = 120;
 const TRAFFIC_EVENT_BLOCKING_PENALTY = 45;
 const TRAFFIC_EVENT_CAUTION_PENALTY = 18;
+export const MOBILITY_WALKING_SPEED_M_PER_MIN = 45;
+
+export interface RouteAccessibilityContext {
+  mobilityMode?: boolean;
+}
 
 const toPoint = (point: LatLng) => [point.lng, point.lat] as const;
 
@@ -95,40 +103,6 @@ const routeRisk = (route: RouteResult, riskZones: RiskZone[]) => {
   return { penalty, rejected, reasons };
 };
 
-const toPlanarPoint = (point: LatLng, origin: LatLng) => {
-  const latScale = 111_320;
-  const lngScale = 111_320 * Math.cos((origin.lat * Math.PI) / 180);
-  return {
-    x: (point.lng - origin.lng) * lngScale,
-    y: (point.lat - origin.lat) * latScale,
-  };
-};
-
-const distanceToSegmentMeters = (point: LatLng, start: LatLng, end: LatLng) => {
-  if (start.lat === end.lat && start.lng === end.lng) return haversineMeters(point, start);
-
-  const p = toPlanarPoint(point, start);
-  const a = { x: 0, y: 0 };
-  const b = toPlanarPoint(end, start);
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const lengthSq = dx * dx + dy * dy;
-  const t = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lengthSq));
-  const projection = { x: a.x + t * dx, y: a.y + t * dy };
-  return Math.hypot(p.x - projection.x, p.y - projection.y);
-};
-
-const distanceToRouteMeters = (event: TrafficEvent, route: RouteResult) => {
-  if (route.geometry.length === 0) return Number.POSITIVE_INFINITY;
-  if (route.geometry.length === 1) return haversineMeters(event.position, route.geometry[0]);
-
-  return Math.min(
-    ...route.geometry
-      .slice(1)
-      .map((point, index) => distanceToSegmentMeters(event.position, route.geometry[index], point)),
-  );
-};
-
 const routeTrafficRisk = (route: RouteResult, trafficEvents: TrafficEvent[]) => {
   const matchedEvents = trafficEvents.filter(
     (event) =>
@@ -160,22 +134,67 @@ export const rankRoutesByRisk = (
   routes: RouteResult[],
   riskZones: RiskZone[],
   trafficEvents: TrafficEvent[] = [],
+  underpassContext: UnderpassRiskContext = {},
+  accessibilityContext: RouteAccessibilityContext = {},
 ): RouteResult[] => {
-  const ranked = routes.map((route) => {
+  const evaluated = routes.map((route) => {
     const risk = routeRisk(route, riskZones);
     const traffic = routeTrafficRisk(route, trafficEvents);
-    const rejected = risk.rejected || traffic.rejected;
+    const underpass = assessUnderpassRouteRisk(route, underpassContext.underpasses ?? [], {
+      rainfallMmPerHour: underpassContext.rainfallMmPerHour,
+      floodWarningLevel: underpassContext.floodWarningLevel,
+    });
+    const usesMobilityWalkingSpeed = accessibilityContext.mobilityMode && route.mode === "WALK";
+    const mobilityDurationSeconds = usesMobilityWalkingSpeed
+      ? Math.ceil((route.distanceMeters / MOBILITY_WALKING_SPEED_M_PER_MIN) * 60)
+      : route.durationSeconds;
+    const rejected = risk.rejected || traffic.rejected || underpass.rejected;
     return {
-      ...route,
-      status: rejected ? ("REJECTED" as const) : ("ALTERNATIVE" as const),
-      safetyScore: Math.max(0, Math.min(100, route.safetyScore - risk.penalty - traffic.penalty)),
-      riskReasons: [...traffic.reasons, ...risk.reasons, ...route.riskReasons]
-        .filter((reason, index, all) => all.indexOf(reason) === index)
-        .slice(0, 3),
+      onlyUnderpassRejected: underpass.rejected && !risk.rejected && !traffic.rejected,
+      route: {
+        ...route,
+        durationSeconds: Math.max(route.durationSeconds, mobilityDurationSeconds),
+        status: rejected ? ("REJECTED" as const) : ("ALTERNATIVE" as const),
+        safetyScore: Math.max(
+          0,
+          Math.min(100, route.safetyScore - risk.penalty - traffic.penalty - underpass.penalty),
+        ),
+        riskReasons: [
+          ...(usesMobilityWalkingSpeed ? ["이동약자 기준 45m/분으로 도착시간 재계산"] : []),
+          ...underpass.reasons,
+          ...traffic.reasons,
+          ...risk.reasons,
+          ...route.riskReasons,
+        ]
+          .filter((reason, index, all) => all.indexOf(reason) === index)
+          .slice(0, 3),
+      },
     };
   });
 
-  return ranked
+  const driveCandidates = evaluated.filter(({ route }) => route.mode === "DRIVE");
+  if (
+    driveCandidates.length > 0 &&
+    driveCandidates.every(({ route }) => route.status === "REJECTED")
+  ) {
+    const fallback = driveCandidates
+      .filter(({ onlyUnderpassRejected }) => onlyUnderpassRejected)
+      .sort(
+        (a, b) =>
+          b.route.safetyScore - a.route.safetyScore ||
+          a.route.distanceMeters - b.route.distanceMeters,
+      )[0];
+    if (fallback) {
+      fallback.route.status = "ALTERNATIVE";
+      fallback.route.riskReasons = [
+        "모든 차량 경로가 지하차도를 통과해 최소 위험 경로 1개를 표시합니다. 현장 통제를 확인하세요.",
+        ...fallback.route.riskReasons,
+      ].slice(0, 3);
+    }
+  }
+
+  return evaluated
+    .map(({ route }) => route)
     .sort((a, b) => {
       if (a.status === "REJECTED" && b.status !== "REJECTED") return 1;
       if (a.status !== "REJECTED" && b.status === "REJECTED") return -1;

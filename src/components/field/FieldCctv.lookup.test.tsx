@@ -11,6 +11,9 @@ import {
 
 const clientMapMock = vi.hoisted(() => vi.fn());
 const useCctvFeedsMock = vi.hoisted(() => vi.fn());
+const cctvConfig = vi.hoisted(() => ({ CCTV_ENABLED: true }));
+
+vi.mock("@/lib/cctv/config", () => cctvConfig);
 
 vi.mock("@/components/map/ClientMap", () => ({
   ClientMap: (props: {
@@ -39,6 +42,7 @@ vi.mock("@/hooks/useCctvFeeds", () => ({
 
 describe("FieldCctv nationwide lookup", () => {
   beforeEach(() => {
+    cctvConfig.CCTV_ENABLED = true;
     clientMapMock.mockClear();
     useCctvFeedsMock.mockClear();
     useCctvFeedsMock.mockReturnValue({
@@ -51,6 +55,15 @@ describe("FieldCctv nationwide lookup", () => {
       },
       isLoading: false,
     });
+  });
+
+  test("CCTV가 꺼져 있으면 현장 화면에서 지도나 조회를 시작하지 않는다", () => {
+    cctvConfig.CCTV_ENABLED = false;
+    render(<FieldCctv />);
+
+    expect(screen.getByText("CCTV 조회가 꺼져 있습니다.")).toBeInTheDocument();
+    expect(screen.queryByTestId("field-cctv-map")).not.toBeInTheDocument();
+    expect(useCctvFeedsMock).not.toHaveBeenCalled();
   });
 
   test("requests nationwide CCTV bounds immediately on screen entry", () => {

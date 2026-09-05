@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 export interface LatLngRouteRequest {
   origin: LatLng;
   destination: LatLng;
+  avoidStairs?: boolean;
 }
 
 export type RouteEdgeFetcher = (request: LatLngRouteRequest) => Promise<unknown>;

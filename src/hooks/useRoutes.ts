@@ -4,11 +4,27 @@ import { fetchNaverDirectionsRoutes } from "@/lib/api/naverDirections";
 import { fetchTmapPedestrianRoutes } from "@/lib/api/tmapPedestrian";
 import { routeResultsSchema } from "@/lib/api/routeSchemas";
 import { API_CACHE_TTL_MS } from "@/lib/api/cache";
+import { measureApiHealth } from "@/lib/api/measureApiHealth";
 import { summarizeApiStatus } from "@/hooks/useApiStatus";
 import type { ApiResult, ApiStatus } from "@/lib/api/types";
 import { rankRoutesByRisk } from "@/lib/risk/routeRanking";
-import type { LatLng, RiskZone, RouteMode, RouteResult, Shelter, TrafficEvent } from "@/lib/types";
+import {
+  getUnderpassCoverage,
+  UNDERPASSES,
+  type UnderpassCoverage,
+} from "@/lib/risk/underpassRisk";
+import type {
+  LatLng,
+  RiskCalculationInput,
+  RiskZone,
+  RouteMode,
+  RouteResult,
+  Shelter,
+  TrafficEvent,
+} from "@/lib/types";
 import { haversineMeters } from "@/lib/utils";
+import { API_HEALTH_SOURCE_NAMES } from "@/store/apiHealth";
+import { useAccessibility } from "@/store/accessibility";
 
 export const ROUTE_FAILURE_MESSAGE =
   "경로를 계산하지 못했습니다. 현재 API 응답이 지연되고 있습니다. 가까운 대피소 목록을 먼저 확인하세요.";
@@ -32,6 +48,7 @@ export interface RoutesState {
   apiStatus: ApiStatus;
   isLoading: boolean;
   fallbackShelters: StraightLineShelter[];
+  underpassCoverage: UnderpassCoverage;
   failureMessage?: string;
 }
 
@@ -40,6 +57,9 @@ interface UseRoutesOptions {
   shelters?: Shelter[];
   riskZones?: RiskZone[];
   trafficEvents?: TrafficEvent[];
+  rainfallMmPerHour?: number;
+  floodWarningLevel?: RiskCalculationInput["floodWarningLevel"];
+  mobilityMode?: boolean;
   clients?: RouteClients;
   enabled?: boolean;
 }
@@ -101,6 +121,9 @@ export const loadRoutes = async ({
   shelters = [],
   riskZones = [],
   trafficEvents = [],
+  rainfallMmPerHour = 0,
+  floodWarningLevel = null,
+  mobilityMode = false,
   clients = {},
 }: UseRoutesOptions): Promise<Omit<RoutesState, "isLoading">> => {
   const walkShelter = firstReachableShelter(origin, shelters, 2500);
@@ -110,31 +133,71 @@ export const loadRoutes = async ({
   const tmapPedestrian = clients.tmapPedestrian ?? fetchTmapPedestrianRoutes;
 
   const walkPromise = walkShelter
-    ? tmapPedestrian({ origin, destination: walkShelter.shelter.position })
-        .then((routes) =>
-          routeResult("tmap-pedestrian", "OK", normalizeRoutes(routes, walkShelter.shelter)),
-        )
-        .catch((error) => routeResult("tmap-pedestrian", "FAILED", null, errorMessage(error)))
+    ? measureApiHealth({
+        name: API_HEALTH_SOURCE_NAMES.tmapPedestrian,
+        source: "tmap-pedestrian",
+        run: async () => {
+          try {
+            const routes = await tmapPedestrian({
+              origin,
+              destination: walkShelter.shelter.position,
+              ...(mobilityMode ? { avoidStairs: true } : {}),
+            });
+            return routeResult(
+              "tmap-pedestrian",
+              "OK",
+              normalizeRoutes(routes, walkShelter.shelter),
+            );
+          } catch (error) {
+            return routeResult("tmap-pedestrian", "FAILED", null, errorMessage(error));
+          }
+        },
+      })
     : Promise.resolve(routeResult("tmap-pedestrian", "FAILED", null, "No shelter within 2500m"));
 
   const drivePromise = driveShelter
-    ? naverDirections({ origin, destination: driveShelter.shelter.position })
-        .then((routes) =>
-          routeResult("naver-directions", "OK", normalizeRoutes(routes, driveShelter.shelter)),
-        )
-        .catch((error) => routeResult("naver-directions", "FAILED", null, errorMessage(error)))
+    ? measureApiHealth({
+        name: API_HEALTH_SOURCE_NAMES.naverDirections,
+        source: "naver-directions",
+        run: async () => {
+          try {
+            const routes = await naverDirections({
+              origin,
+              destination: driveShelter.shelter.position,
+            });
+            return routeResult(
+              "naver-directions",
+              "OK",
+              normalizeRoutes(routes, driveShelter.shelter),
+            );
+          } catch (error) {
+            return routeResult("naver-directions", "FAILED", null, errorMessage(error));
+          }
+        },
+      })
     : Promise.resolve(routeResult("naver-directions", "FAILED", null, "No reachable shelter"));
 
   const [walk, drive] = await Promise.all([walkPromise, drivePromise]);
   const routeCandidates = [...(walk.data ?? []), ...(drive.data ?? [])];
-  const routes = rankRoutesByRisk(routeCandidates, riskZones, trafficEvents);
+  const routes = rankRoutesByRisk(
+    routeCandidates,
+    riskZones,
+    trafficEvents,
+    {
+      underpasses: UNDERPASSES,
+      rainfallMmPerHour,
+      floodWarningLevel,
+    },
+    { mobilityMode },
+  );
   const apiStatus = summarizeApiStatus([walk, drive]);
   const bothFailed = walk.status === "FAILED" && drive.status === "FAILED";
 
   let failureMessage: string | undefined;
   if (bothFailed) {
     if (shelters.length === 0) {
-      failureMessage = "주변 반경에 탐색된 대피소가 없습니다. (지원 지역: 서울 강남구 일대)";
+      failureMessage =
+        "주변 반경에 탐색된 대피소가 없습니다. 현재 위치 주변의 공개 대피소 데이터를 확인할 수 없습니다.";
     } else {
       failureMessage = ROUTE_FAILURE_MESSAGE;
     }
@@ -145,6 +208,7 @@ export const loadRoutes = async ({
     results: { walk, drive },
     apiStatus,
     fallbackShelters,
+    underpassCoverage: getUnderpassCoverage(origin),
     failureMessage,
   };
 };
@@ -162,9 +226,14 @@ export const useRoutes = ({
   shelters = [],
   riskZones = [],
   trafficEvents = [],
+  rainfallMmPerHour = 0,
+  floodWarningLevel = null,
+  mobilityMode: requestedMobilityMode,
   clients,
   enabled = true,
 }: UseRoutesOptions): RoutesState => {
+  const storedMobilityMode = useAccessibility((state) => state.mobilityMode);
+  const mobilityMode = requestedMobilityMode ?? storedMobilityMode;
   const fallbackShelters = rankStraightLineShelters(origin, shelters);
   const query = useQuery({
     queryKey: [
@@ -174,10 +243,23 @@ export const useRoutes = ({
       shelters.map((shelter) => shelter.id).join(","),
       riskZones.map((zone) => `${zone.id}:${zone.level}`).join(","),
       trafficEvents.map((event) => event.id).join(","),
+      rainfallMmPerHour,
+      floodWarningLevel,
+      mobilityMode,
     ],
     staleTime: API_CACHE_TTL_MS.ROUTE,
     enabled,
-    queryFn: () => loadRoutes({ origin, shelters, riskZones, trafficEvents, clients }),
+    queryFn: () =>
+      loadRoutes({
+        origin,
+        shelters,
+        riskZones,
+        trafficEvents,
+        rainfallMmPerHour,
+        floodWarningLevel,
+        mobilityMode,
+        clients,
+      }),
   });
 
   return {
@@ -189,6 +271,7 @@ export const useRoutes = ({
     apiStatus: query.data?.apiStatus ?? "FAILED",
     isLoading: enabled && query.isLoading,
     fallbackShelters: query.data?.fallbackShelters ?? fallbackShelters,
+    underpassCoverage: query.data?.underpassCoverage ?? getUnderpassCoverage(origin),
     failureMessage: query.data?.failureMessage,
   };
 };

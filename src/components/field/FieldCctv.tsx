@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Camera, ExternalLink, MapPinned, RadioTower } from "lucide-react";
 
 import { ClientMap } from "@/components/map/ClientMap";
 import { OpsLayout } from "@/components/ops/OpsLayout";
 import { useCctvFeeds } from "@/hooks/useCctvFeeds";
 import type { CctvFeed } from "@/lib/api/cctvInfo";
+import { CCTV_ENABLED } from "@/lib/cctv/config";
 import type { LatLng } from "@/lib/types";
 
 type CctvBounds = { minX: number; maxX: number; minY: number; maxY: number };
@@ -92,6 +93,18 @@ export const REGION_GROUPS = [
 ];
 
 export const NATIONAL_CCTV_LIMIT = 5000;
+const INITIAL_CCTV_LIST_SIZE = 24;
+const MAX_CCTV_MAP_MARKERS = 250;
+
+const sampleCctvsForMap = (cameras: CctvFeed[], limit: number): CctvFeed[] => {
+  if (limit <= 0) return [];
+  if (cameras.length <= limit) return cameras;
+
+  return Array.from({ length: limit }, (_, index) => {
+    const cameraIndex = Math.floor((index * cameras.length) / limit);
+    return cameras[cameraIndex]!;
+  });
+};
 
 const cctvTypeLabel = (type: string) =>
   ({
@@ -112,15 +125,37 @@ export const getNationwideCctvDescription = () => "전국 CCTV 위치 기준 · 
 export const getDynamicCctvDescription = () => "현재 지도 영역 기준 · 지도 이동 시 자동 갱신";
 
 export function FieldCctv() {
+  if (!CCTV_ENABLED) {
+    return (
+      <OpsLayout
+        title="전국 CCTV"
+        description="현재 CCTV 기능이 비활성화되어 있습니다."
+        detail={null}
+      >
+        <section className="rounded-[8px] border border-[var(--border-soft)] bg-white p-4">
+          <p role="status" className="text-[14px] text-[var(--text-muted)]">
+            CCTV 조회가 꺼져 있습니다.
+          </p>
+        </section>
+      </OpsLayout>
+    );
+  }
+
+  return <EnabledFieldCctv />;
+}
+
+function EnabledFieldCctv() {
   const [currentBounds, setCurrentBounds] = useState<CctvBounds>(NATIONAL_CCTV_BOUNDS);
   const [currentCenter, setCurrentCenter] = useState<LatLng>(NATIONAL_CCTV_CENTER);
   const [currentZoom, setCurrentZoom] = useState(7);
   const [selectedRegion, setSelectedRegion] = useState("전국");
+  const [visibleCameraCount, setVisibleCameraCount] = useState(INITIAL_CCTV_LIST_SIZE);
 
   const handleRegionChange = (regionName: string) => {
     setSelectedRegion(regionName);
     const region = REGION_GROUPS.flatMap((g) => g.items).find((r) => r.name === regionName);
     if (region) {
+      setVisibleCameraCount(INITIAL_CCTV_LIST_SIZE);
       setCurrentCenter({ lat: region.lat, lng: region.lng });
       setCurrentZoom(region.zoom);
 
@@ -139,17 +174,17 @@ export function FieldCctv() {
 
   const handleBoundsChanged = (bounds: CctvBounds) => {
     const qBounds = quantizeBounds(bounds);
-    setCurrentBounds((prev) => {
-      if (
-        prev.minX === qBounds.minX &&
-        prev.maxX === qBounds.maxX &&
-        prev.minY === qBounds.minY &&
-        prev.maxY === qBounds.maxY
-      ) {
-        return prev; // 바운딩 박스가 동일한 캐시 그리드 내에 있으면 상태 업데이트 무시 (재호출 방지)
-      }
-      return qBounds;
-    });
+    if (
+      currentBounds.minX === qBounds.minX &&
+      currentBounds.maxX === qBounds.maxX &&
+      currentBounds.minY === qBounds.minY &&
+      currentBounds.maxY === qBounds.maxY
+    ) {
+      return; // 바운딩 박스가 동일한 캐시 그리드 내에 있으면 상태 업데이트 무시 (재호출 방지)
+    }
+
+    setVisibleCameraCount(INITIAL_CCTV_LIST_SIZE);
+    setCurrentBounds(qBounds);
   };
 
   const { cameras, result, isLoading } = useCctvFeeds({
@@ -157,11 +192,17 @@ export function FieldCctv() {
     limit: NATIONAL_CCTV_LIMIT,
     roadType: "all",
   });
+  const visibleCameras = cameras.slice(0, visibleCameraCount);
+  const mapCameras = useMemo(() => sampleCctvsForMap(cameras, MAX_CCTV_MAP_MARKERS), [cameras]);
+  const nextCameraCount = Math.min(
+    INITIAL_CCTV_LIST_SIZE,
+    Math.max(0, cameras.length - visibleCameras.length),
+  );
 
   return (
     <OpsLayout
       title="전국 CCTV"
-      description="화면 진입과 동시에 전국 ITS CCTV 위치를 지도에 표시합니다."
+      description="현재 지도 영역의 ITS CCTV 위치를 빠르게 조회해 지도에 표시합니다."
       detail={<CctvDetail cameras={cameras} isLoading={isLoading} status={result.status} />}
     >
       <section className="rounded-[8px] border border-[var(--border-soft)] bg-white p-4">
@@ -221,12 +262,20 @@ export function FieldCctv() {
             center={currentCenter}
             zoom={currentZoom}
             height={640}
-            cctvs={cameras}
+            cctvs={mapCameras}
             showCenterMarker={false}
             onBoundsChanged={handleBoundsChanged}
             onCenterChanged={setCurrentCenter}
           />
         </div>
+
+        {mapCameras.length < cameras.length ? (
+          <p className="mt-2 text-[12px] leading-relaxed text-[var(--text-muted)]">
+            빠른 지도 조작을 위해 조회된 {cameras.length.toLocaleString()}개 중{" "}
+            {mapCameras.length.toLocaleString()}개 위치를 고르게 표시합니다. 지도를 확대하거나
+            이동하면 해당 영역을 다시 조회합니다.
+          </p>
+        ) : null}
 
         <div className="mt-4 rounded-[8px] border border-[var(--border-soft)] bg-[var(--surface-alt)] p-3">
           <div className="flex items-start gap-2">
@@ -251,10 +300,26 @@ export function FieldCctv() {
         ) : null}
 
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
-          {cameras.map((camera) => (
+          {visibleCameras.map((camera) => (
             <CctvCard key={camera.id} camera={camera} />
           ))}
         </div>
+
+        {nextCameraCount > 0 ? (
+          <div className="mt-4 flex justify-center">
+            <button
+              type="button"
+              onClick={() =>
+                setVisibleCameraCount((count) =>
+                  Math.min(count + INITIAL_CCTV_LIST_SIZE, cameras.length),
+                )
+              }
+              className="min-h-10 rounded-[8px] border border-[var(--border-soft)] bg-white px-4 text-[13px] font-extrabold text-[var(--primary)] shadow-sm hover:bg-[var(--surface-alt)]"
+            >
+              CCTV {nextCameraCount.toLocaleString()}개 더 보기
+            </button>
+          </div>
+        ) : null}
 
         {!isLoading && cameras.length === 0 && result.status === "OK" ? (
           <p className="mt-4 text-[13px] text-[var(--text-muted)]">
@@ -268,7 +333,7 @@ export function FieldCctv() {
 
 function CctvCard({ camera }: { camera: CctvFeed }) {
   return (
-    <article className="rounded-[8px] border border-[var(--border-soft)] bg-white p-4">
+    <article className="min-w-0 rounded-[8px] border border-[var(--border-soft)] bg-white p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-[15px] font-extrabold">{camera.name}</h3>
@@ -330,7 +395,7 @@ function CctvDetail({
           {isLoading ? "조회 중" : `${cameras.length.toLocaleString()}개`}
         </div>
         <div className="mt-1 truncate text-[12px] text-[var(--text-muted)]">
-          현재 영역 범위 · 최대 {NATIONAL_CCTV_LIMIT.toLocaleString()}개 표시
+          현재 영역 조회 · 최대 {NATIONAL_CCTV_LIMIT.toLocaleString()}개 수집
         </div>
       </div>
     </div>

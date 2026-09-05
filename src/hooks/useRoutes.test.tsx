@@ -126,6 +126,22 @@ describe("useRoutes", () => {
     expect(result.current.fallbackShelters.map(({ shelter }) => shelter.id)).toEqual(["s-01"]);
   });
 
+  test("keeps an empty 부산 result region-neutral", async () => {
+    const { result } = renderHook(
+      () =>
+        useRoutes({
+          origin: { lat: 35.1631, lng: 129.1635 },
+          shelters: [],
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.failureMessage).toContain("주변 반경");
+    expect(result.current.failureMessage).not.toMatch(/서울|강남|역삼|탄천/);
+  });
+
   test("does not call route APIs while route loading is disabled", async () => {
     const naverDirections = vi.fn().mockResolvedValue([route("DRIVE", "drive-1")]);
     const tmapPedestrian = vi.fn().mockResolvedValue([route("WALK", "walk-1")]);
@@ -145,5 +161,32 @@ describe("useRoutes", () => {
     expect(result.current.isLoading).toBe(false);
     expect(naverDirections).not.toHaveBeenCalled();
     expect(tmapPedestrian).not.toHaveBeenCalled();
+  });
+
+  test("requests stair avoidance and lengthens walking ETA in mobility mode", async () => {
+    const naverDirections = vi.fn().mockResolvedValue([route("DRIVE", "drive-1")]);
+    const tmapPedestrian = vi.fn().mockResolvedValue([route("WALK", "walk-1")]);
+
+    const { result } = renderHook(
+      () =>
+        useRoutes({
+          origin,
+          shelters,
+          clients: { naverDirections, tmapPedestrian },
+          mobilityMode: true,
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(tmapPedestrian).toHaveBeenCalledWith({
+      origin,
+      destination: shelters[0].position,
+      avoidStairs: true,
+    });
+    expect(
+      result.current.routes.find((candidate) => candidate.mode === "WALK")?.durationSeconds,
+    ).toBe(1227);
   });
 });

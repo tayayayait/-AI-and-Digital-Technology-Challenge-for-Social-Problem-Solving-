@@ -26,6 +26,8 @@
 
 - The address form submit button is labeled `주소 검색` because submit returns candidate locations first.
 - Route recalculation completes only after the user selects one returned address candidate.
+- 입력 예시는 특정 지역을 전제로 하지 않는 `시청, 중앙대로 100`을 사용한다.
+- 역지오코딩 실패 시 다른 도시의 주소를 대신 표시하지 않고 `선택 위치 위도, 경도` 형식으로 표시한다.
 
 ## Map Interaction
 
@@ -49,6 +51,27 @@
 
 - Rule-based AI fallback answers must be specific to the selected quick question.
 - Family-share and official-report questions use dedicated labels and response text instead of reusing generic route-risk reasons.
+
+## 이동약자 모드
+
+- `/help` 설정 카드에서 이동약자 모드를 켜고 끌 수 있으며 선택값은
+  `chimsu-accessibility` localStorage에 보존한다.
+- 활성화되면 루트 요소에 `data-a11y="large-contrast"`를 적용한다. 본문 글자는 1.25배로
+  확대하되 64px 하단 내비게이션의 높이와 아이콘 크기는 유지한다.
+- 배경·본문·주요 버튼은 WCAG AA 일반 텍스트 기준 4.5:1 이상의 대비를 사용한다. 지도 마커는
+  크기와 테두리를 함께 키우며 긴 텍스트에는 `min-width: 0`과 줄바꿈을 적용한다.
+- 도보 경로는 TMAP 계단 제외 옵션을 요청한다. 해당 옵션을 사용할 수 없으면 일반 경로를
+  유지하면서 `계단 정보 없음`을 명시한다.
+- 도보 도착 예상시간은 일반 67m/분 대신 이동약자 기준 `45m/분`으로 재계산한다. 차량 경로와
+  일반 모드의 예상시간은 변경하지 않는다.
+
+## 지역 중립 표시
+
+- 대피소·경로·재난문자·AI 안내는 사용자가 선택한 현재 위치를 기준으로 조회한다.
+- 외부 API 실패 시 서울 또는 강남의 demo 데이터로 대체하지 않는다. 재난문자는 빈 목록,
+  주소는 선택 좌표, 경로는 현재 위치 기준 오류 안내를 사용한다.
+- 전국 현황 화면의 지역 필터처럼 데이터 범위를 나타내는 지명은 유지하지만, 시민 화면의
+  추천 문구와 AI 허용 고유명사는 현재 주소와 실제 대피소명에서만 만든다.
 
 ## Home AI Guidance
 

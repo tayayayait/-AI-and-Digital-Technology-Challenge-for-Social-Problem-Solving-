@@ -19,6 +19,9 @@ create table public.audit_logs (
 
 alter table public.audit_logs enable row level security;
 
+grant select, insert on table public.audit_logs to authenticated;
+grant all on table public.audit_logs to service_role;
+
 create index audit_logs_created_at_idx on public.audit_logs (created_at desc);
 create index audit_logs_actor_idx on public.audit_logs (actor_id, created_at desc);
 create index audit_logs_action_idx on public.audit_logs (action, created_at desc);
@@ -52,6 +55,9 @@ create table public.api_health_metrics (
 );
 
 alter table public.api_health_metrics enable row level security;
+
+grant select, insert on table public.api_health_metrics to authenticated;
+grant all on table public.api_health_metrics to service_role;
 
 create index api_health_metrics_api_idx on public.api_health_metrics (api_name, created_at desc);
 create index api_health_metrics_status_idx on public.api_health_metrics (status, created_at desc);

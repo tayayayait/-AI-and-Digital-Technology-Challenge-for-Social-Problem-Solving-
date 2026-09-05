@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson } from "../_shared/upstream.ts";
 import { readTrafficEventsApiKey } from "./apiKey.ts";
@@ -124,59 +124,61 @@ const normalizeEvent = (item: Record<string, unknown>, index: number): TrafficEv
   };
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const input = parseCenterRequest(await parseJsonBody(request));
-    const apiKey = readTrafficEventsApiKey((name) => Deno.env.get(name));
-    if (!apiKey) {
-      return jsonOk(trafficEventsUnavailableBody("ITS_API_KEY is not configured"));
-    }
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const input = parseCenterRequest(await parseJsonBody(request));
+      const apiKey = readTrafficEventsApiKey((name) => Deno.env.get(name));
+      if (!apiKey) {
+        return jsonOk(trafficEventsUnavailableBody("ITS_API_KEY is not configured"));
+      }
 
-    const bounds = toBoundingBox(input);
+      const bounds = toBoundingBox(input);
 
-    const url = new URL(API_URL);
-    url.searchParams.set("apiKey", apiKey);
-    url.searchParams.set("type", "all");
-    url.searchParams.set("eventType", "all");
-    url.searchParams.set("minX", bounds.minX.toFixed(6));
-    url.searchParams.set("maxX", bounds.maxX.toFixed(6));
-    url.searchParams.set("minY", bounds.minY.toFixed(6));
-    url.searchParams.set("maxY", bounds.maxY.toFixed(6));
-    url.searchParams.set("getType", "json");
+      const url = new URL(API_URL);
+      url.searchParams.set("apiKey", apiKey);
+      url.searchParams.set("type", "all");
+      url.searchParams.set("eventType", "all");
+      url.searchParams.set("minX", bounds.minX.toFixed(6));
+      url.searchParams.set("maxX", bounds.maxX.toFixed(6));
+      url.searchParams.set("minY", bounds.minY.toFixed(6));
+      url.searchParams.set("maxY", bounds.maxY.toFixed(6));
+      url.searchParams.set("getType", "json");
 
-    const upstream = await fetchTrafficEventsWithRetry(() =>
-      fetchJson(url, undefined, {
-        timeoutMs: TRAFFIC_EVENTS_UPSTREAM_TIMEOUT_MS,
-        timeoutMessage: "ITS eventInfo request timed out",
-      }),
-    );
-    if (!isRecord(upstream)) throw new Error("Invalid ITS response");
-
-    const header = upstream.header;
-    if (isRecord(header) && !isSuccessfulItsResultCode(header.resultCode)) {
-      throw new Error(
-        `ITS API error: ${text(header.resultMsg) || resultCodeText(header.resultCode) || "unknown"}`,
+      const upstream = await fetchTrafficEventsWithRetry(() =>
+        fetchJson(url, undefined, {
+          timeoutMs: TRAFFIC_EVENTS_UPSTREAM_TIMEOUT_MS,
+          timeoutMessage: "ITS eventInfo request timed out",
+        }),
       );
+      if (!isRecord(upstream)) throw new Error("Invalid ITS response");
+
+      const header = upstream.header;
+      if (isRecord(header) && !isSuccessfulItsResultCode(header.resultCode)) {
+        throw new Error(
+          `ITS API error: ${text(header.resultMsg) || resultCodeText(header.resultCode) || "unknown"}`,
+        );
+      }
+
+      const body = upstream.body;
+      const itemsRaw = isRecord(body) ? body.items : undefined;
+      const items = toArray(isRecord(itemsRaw) ? (itemsRaw.item ?? itemsRaw) : itemsRaw);
+      const events = items
+        .map((item, index) => normalizeEvent(item, index))
+        .filter((event): event is TrafficEvent => event != null);
+
+      return jsonOk({ events, source: SOURCE, status: "OK" });
+    } catch (error) {
+      if (isTrafficEventsUpstreamUnavailable(error)) {
+        const message = error instanceof Error ? error.message : "ITS eventInfo unavailable";
+        return jsonOk(trafficEventsUnavailableBody(message));
+      }
+
+      return edgeError(error);
     }
-
-    const body = upstream.body;
-    const itemsRaw = isRecord(body) ? (body as any).items : undefined;
-    const items = toArray(isRecord(itemsRaw) ? (itemsRaw.item ?? itemsRaw) : itemsRaw);
-    const events = items
-      .map((item, index) => normalizeEvent(item, index))
-      .filter((event): event is TrafficEvent => event != null);
-
-    return jsonOk({ events, source: SOURCE, status: "OK" });
-  } catch (error) {
-    if (isTrafficEventsUpstreamUnavailable(error)) {
-      const message = error instanceof Error ? error.message : "ITS eventInfo unavailable";
-      return jsonOk(trafficEventsUnavailableBody(message));
-    }
-
-    return edgeError(error);
-  }
-});
+  }),
+);

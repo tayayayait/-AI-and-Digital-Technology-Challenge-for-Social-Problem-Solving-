@@ -6,9 +6,14 @@ import { RiskBadge } from "@/components/risk/RiskBadge";
 interface AppHeaderProps {
   title?: string;
   context?: "citizen" | "field";
+  staleRisk?: boolean;
 }
 
-export function AppHeader({ title = "침수퇴로 AI", context = "citizen" }: AppHeaderProps) {
+export function AppHeader({
+  title = "침수퇴로 AI",
+  context = "citizen",
+  staleRisk = false,
+}: AppHeaderProps) {
   const { riskLevel, scenarioPresetId, setLocationStatus } = useScenario();
   const navigate = useNavigate();
   const isField = context === "field";
@@ -23,7 +28,7 @@ export function AppHeader({ title = "침수퇴로 AI", context = "citizen" }: Ap
       className="sticky top-0 bg-white border-b border-[var(--border-soft)] flex items-center gap-3 px-4"
       style={{ height: 56, zIndex: 45 }}
     >
-      <RiskBadge level={riskLevel} />
+      <RiskBadge level={riskLevel} stale={staleRisk} />
       {isField ? (
         <div className="flex-1 min-w-0">
           <div className="text-[11px] font-bold text-[var(--text-subtle)]">공개 현장정보</div>

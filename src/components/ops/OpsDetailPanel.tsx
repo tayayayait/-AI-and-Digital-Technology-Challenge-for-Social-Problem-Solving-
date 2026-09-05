@@ -36,39 +36,55 @@ export function OpsDetailPanel({ zone }: { zone: AggregatedRiskZone | null }) {
       </div>
 
       <DetailSection icon={AlertTriangle} title="위험요인">
-        <ul className="space-y-1">
-          {zone.reasons.map((reason) => (
-            <li key={reason} className="text-[13px] text-[var(--text-muted)]">
-              {reason}
-            </li>
-          ))}
-        </ul>
+        {zone.reasons.length > 0 ? (
+          <ul className="space-y-1">
+            {zone.reasons.map((reason) => (
+              <li key={reason} className="text-[13px] text-[var(--text-muted)]">
+                {reason}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyDetail>현재 확인된 위험요인 없음</EmptyDetail>
+        )}
       </DetailSection>
 
       <DetailSection icon={MapPinned} title="영향 대피소">
-        <ul className="space-y-2">
-          {zone.impactShelters.map((shelter) => (
-            <li key={shelter.id}>
-              <div className="text-[13px] font-bold">{shelter.name}</div>
-              <div className="text-[12px] text-[var(--text-subtle)] tnum">
-                수용 {shelter.capacity.toLocaleString()}명 · {shelter.status}
-              </div>
-            </li>
-          ))}
-        </ul>
+        {zone.impactShelters.length > 0 ? (
+          <ul className="space-y-2">
+            {zone.impactShelters.map((shelter) => (
+              <li key={shelter.id}>
+                <div className="text-[13px] font-bold">{shelter.name}</div>
+                <div className="text-[12px] text-[var(--text-subtle)] tnum">
+                  수용 {shelter.capacity.toLocaleString()}명 · {shelter.status}
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyDetail>영향 대피소 없음</EmptyDetail>
+        )}
       </DetailSection>
 
       <DetailSection icon={Route} title="통제 후보 도로">
-        <ul className="space-y-1">
-          {zone.controlRoads.map((road) => (
-            <li key={road} className="text-[13px] text-[var(--text-muted)]">
-              {road}
-            </li>
-          ))}
-        </ul>
+        {zone.controlRoads.length > 0 ? (
+          <ul className="space-y-1">
+            {zone.controlRoads.map((road) => (
+              <li key={road} className="text-[13px] text-[var(--text-muted)]">
+                {road}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <EmptyDetail>현재 통제 도로 없음</EmptyDetail>
+        )}
       </DetailSection>
     </div>
   );
+}
+
+function EmptyDetail({ children }: { children: ReactNode }) {
+  return <p className="text-[13px] text-[var(--text-subtle)]">{children}</p>;
 }
 
 function DetailSection({

@@ -1,15 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ClientMap } from "@/components/map/ClientMap";
 import { AddressFallback } from "@/components/location/AddressFallback";
-import { ActionCard } from "@/components/risk/ActionCard";
+import { ActionCard, type AlternativeShelterView } from "@/components/risk/ActionCard";
 import { SafeMapEvidencePanel } from "@/components/risk/SafeMapEvidencePanel";
 import { WeatherPanel } from "@/components/risk/WeatherPanel";
 import { HomeSkeleton } from "@/components/skeletons/HomeSkeleton";
 import { LocationPermissionPrompt } from "@/components/location/LocationPermissionPrompt";
 import { useScenario } from "@/store/scenario";
 import { useWmsLayers } from "@/hooks/useWmsLayers";
-import { DATA_TIMESTAMP } from "@/mocks/data";
+import { oldestSuccessfulTimestamp } from "@/lib/api/dataTimestamp";
 import { formatDistance, haversineMeters } from "@/lib/utils";
 import type { GeocodeResult } from "@/lib/geocoding";
 import { useShelters } from "@/hooks/useShelters";
@@ -18,10 +18,16 @@ import { useAiAdvice } from "@/hooks/useAiAdvice";
 import { useRoutes } from "@/hooks/useRoutes";
 import { useTrafficEvents } from "@/hooks/useTrafficEvents";
 import { useCctvFeeds } from "@/hooks/useCctvFeeds";
+import { CCTV_ENABLED } from "@/lib/cctv/config";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { Camera } from "lucide-react";
 import type { GeminiRouteExplanationInput } from "@/lib/api/gemini";
+import { buildSituationFacts, getDisasterTypes } from "@/lib/ai/situationContext";
 import type { RouteMode, RouteResult, Shelter } from "@/lib/types";
 import { WmsLegend } from "@/components/map/WmsLegend";
+import { RISK_META } from "@/lib/risk";
+import { EmergencyBar, type EmergencyBarVariant } from "@/components/layout/EmergencyBar";
+import { useEmergencyMode } from "@/hooks/useEmergencyMode";
 
 export { LocationPermissionPrompt };
 
@@ -70,11 +76,7 @@ const selectHomeRoute = (routes: RouteResult[]) =>
   routes.find((route) => route.status !== "REJECTED") ??
   routes[0];
 
-const routeTimestamp = (
-  route: RouteResult | undefined,
-  results: ReturnType<typeof useRoutes>["results"],
-) => {
-  if (!route) return DATA_TIMESTAMP;
+const routeTimestamp = (route: RouteResult, results: ReturnType<typeof useRoutes>["results"]) => {
   return route.mode === "WALK" ? results.walk.timestamp : results.drive.timestamp;
 };
 
@@ -103,18 +105,35 @@ export const Route = createFileRoute("/")({
 });
 
 function Home() {
-  const { riskLevel, origin, locationStatus, setLocationStatus, setOrigin, apiStatus } =
-    useScenario();
+  const navigate = useNavigate();
+  const {
+    riskLevel,
+    origin,
+    locationStatus,
+    setLocationStatus,
+    setOrigin,
+    apiStatus,
+    lastConfirmedAt,
+    setLastConfirmedAt,
+    lastRecommendation,
+    setLastRecommendation,
+  } = useScenario();
+  const online = useOnlineStatus();
   const [showPerm, setShowPerm] = useState(locationStatus === "PROMPT");
   const [hydrated, setHydrated] = useState(false);
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [selectedShelterId, setSelectedShelterId] = useState<string | null>(null);
-  const [showCctv, setShowCctv] = useState(true);
+  const [selectedShelterOverride, setSelectedShelterOverride] = useState<Shelter | null>(null);
+  const [showCctv, setShowCctv] = useState(CCTV_ENABLED);
   const [mapBounds, setMapBounds] = useState<HomeCctvBounds | null>(null);
   const wmsLayers = useWmsLayers();
   const hasSelectedLocation = locationStatus === "GRANTED";
+  const isEmergency = useEmergencyMode(riskLevel);
+  const displayRiskLevel = isEmergency ? "CRITICAL" : riskLevel;
 
   const breakdown = useRiskAssessment(origin);
+  const currentDataTimestamp = oldestSuccessfulTimestamp(breakdown.dataSources);
+  const dataTimestamp = currentDataTimestamp ?? (!online ? lastConfirmedAt : null);
   const updateMapBounds = useCallback((nextBounds: HomeCctvBounds) => {
     setMapBounds((currentBounds) =>
       areHomeCctvBoundsSimilar(currentBounds, nextBounds) ? currentBounds : nextBounds,
@@ -125,7 +144,7 @@ function Home() {
     center: origin,
     bounds: mapBounds,
     limit: HOME_CCTV_LIMIT,
-    enabled: showCctv && hasSelectedLocation,
+    enabled: CCTV_ENABLED && showCctv && hasSelectedLocation,
   });
 
   useEffect(() => {
@@ -135,71 +154,167 @@ function Home() {
   useEffect(() => {
     if (locationStatus !== "GRANTED") {
       setSelectedShelterId(null);
+      setSelectedShelterOverride(null);
     }
     if (locationStatus === "PROMPT") {
       setShowPerm(true);
     }
   }, [locationStatus]);
 
-  const { shelters, isLoading: isSheltersLoading } = useShelters(origin);
+  // 1) 내 위치 기준 대피소: AI 조언, 기본 추천, 기본 경로 계산용 (항상 내 위치 5km 반경 유지)
+  const {
+    shelters: originShelters,
+    isLoading: isOriginSheltersLoading,
+    result: shelterResult,
+  } = useShelters(origin, 5000, hasSelectedLocation);
+
+  // 2) 지도 탐색 대피소: 현재 지도 화면 영역(Bounds)에 따른 마커 표시용
+  const { shelters: mapShelters } = useShelters(
+    origin,
+    5000,
+    hasSelectedLocation && Boolean(mapBounds),
+    mapBounds,
+  );
+
+  // 지도에 표시할 마커 대피소 목록 (지도 이동 시 갱신)
+  const displayedMapShelters = mapBounds ? mapShelters : originShelters;
+
+  // 모든 알려진 대피소 캐시 (지도에서 선택한 원거리 대피소도 유지)
+  const allKnownShelters = useMemo(() => {
+    const map = new Map<string, Shelter>();
+    for (const s of originShelters) map.set(s.id, s);
+    for (const s of mapShelters) map.set(s.id, s);
+    if (selectedShelterOverride) {
+      map.set(selectedShelterOverride.id, selectedShelterOverride);
+    }
+    return map;
+  }, [originShelters, mapShelters, selectedShelterOverride]);
+
+  const selectedShelter = useMemo(
+    () => (selectedShelterId ? allKnownShelters.get(selectedShelterId) : undefined),
+    [selectedShelterId, allKnownShelters],
+  );
+
   const { events: trafficEvents } = useTrafficEvents(origin);
 
   const shelterOptions = useMemo(() => {
-    return [...shelters]
+    const list = [...originShelters];
+    // 사용자가 지도에서 선택한 대피소가 originShelters에 없으면 목록에 추가
+    if (selectedShelter && !list.some((s) => s.id === selectedShelter.id)) {
+      list.push(selectedShelter);
+    }
+    return list
       .map((s) => ({
         s,
         d: haversineMeters(origin, s.position),
       }))
       .sort((a, b) => a.d - b.d);
-  }, [origin, shelters]);
-
-  const selectedShelter = useMemo(
-    () => shelters.find((shelter) => shelter.id === selectedShelterId),
-    [selectedShelterId, shelters],
-  );
-
-  useEffect(() => {
-    if (!selectedShelterId) return;
-    if (shelterOptions.some(({ s }) => s.id === selectedShelterId)) return;
-    setSelectedShelterId(null);
-  }, [shelterOptions, selectedShelterId]);
+  }, [origin, originShelters, selectedShelter]);
 
   const fallbackRecommended = useMemo(() => {
-    if (shelterOptions.length === 0) return undefined;
-    return (
-      shelterOptions.find(({ s }) => s.id === selectedShelterId) ??
-      shelterOptions.find(({ s }) => s.status !== "EXCLUDED") ??
-      shelterOptions[0]
-    );
-  }, [shelterOptions, selectedShelterId]);
+    if (originShelters.length === 0) return undefined;
+    const sorted = [...originShelters]
+      .map((s) => ({ s, d: haversineMeters(origin, s.position) }))
+      .sort((a, b) => a.d - b.d);
+
+    return sorted.find(({ s }) => s.status !== "EXCLUDED") ?? sorted[0];
+  }, [origin, originShelters]);
 
   const routeShelters = useMemo(
-    () => (selectedShelter ? [selectedShelter] : shelters),
-    [selectedShelter, shelters],
+    () => (selectedShelter ? [selectedShelter] : originShelters),
+    [selectedShelter, originShelters],
   );
 
   const routeState = useRoutes({
     origin,
     shelters: routeShelters,
     trafficEvents,
+    rainfallMmPerHour: breakdown.weather?.rainfallMmPerHour,
+    floodWarningLevel: breakdown.floodWarningLevel,
     enabled: hasSelectedLocation && routeShelters.length > 0,
   });
 
-  const homeRoute = useMemo(() => selectHomeRoute(routeState.routes), [routeState.routes]);
+  const currentHomeRoute = useMemo(() => selectHomeRoute(routeState.routes), [routeState.routes]);
+  const homeRoute =
+    currentHomeRoute ?? (!online ? (lastRecommendation?.route ?? undefined) : undefined);
   const routes = useMemo(
     () => (homeRoute && homeRoute.status !== "REJECTED" ? [homeRoute] : []),
     [homeRoute],
   );
   const routeShelter = useMemo(
-    () => shelters.find((shelter) => shelter.id === homeRoute?.shelterId),
-    [homeRoute?.shelterId, shelters],
+    () => (homeRoute?.shelterId ? allKnownShelters.get(homeRoute.shelterId) : undefined),
+    [homeRoute?.shelterId, allKnownShelters],
   );
   const recommended = useMemo(() => {
+    if (selectedShelter) {
+      return {
+        s: selectedShelter,
+        d:
+          homeRoute?.shelterId === selectedShelter.id
+            ? homeRoute.distanceMeters
+            : haversineMeters(origin, selectedShelter.position),
+      };
+    }
     if (homeRoute && routeShelter) {
       return { s: routeShelter, d: homeRoute.distanceMeters };
     }
+    if (!online && lastRecommendation) {
+      return {
+        s: lastRecommendation.shelter,
+        d: lastRecommendation.route?.distanceMeters,
+      };
+    }
     return fallbackRecommended;
-  }, [fallbackRecommended, homeRoute, routeShelter]);
+  }, [
+    fallbackRecommended,
+    homeRoute,
+    lastRecommendation,
+    online,
+    origin,
+    routeShelter,
+    selectedShelter,
+  ]);
+  const recommendedShelter = recommended?.s;
+  const guidanceRoute = homeRoute?.shelterId === recommendedShelter?.id ? homeRoute : undefined;
+  const alternativeShelters = useMemo<AlternativeShelterView[]>(
+    () =>
+      shelterOptions
+        .filter(
+          ({ s }) => s.id !== recommendedShelter?.id && s.status !== "EXCLUDED" && !s.underground,
+        )
+        .slice(0, 2)
+        .map(({ s, d }) => ({
+          shelter: s,
+          distanceMeters: d,
+          distanceKind: "STRAIGHT_LINE",
+          routeVerified: false,
+        })),
+    [shelterOptions, recommendedShelter?.id],
+  );
+  const aiAlternatives = useMemo(
+    () =>
+      alternativeShelters.map((alternative) => ({
+        shelterId: alternative.shelter.id,
+        shelterName: alternative.shelter.name,
+        distanceMeters: alternative.distanceMeters,
+        distanceKind: alternative.distanceKind,
+        routeVerified: alternative.routeVerified,
+      })),
+    [alternativeShelters],
+  );
+  const disasterTypes = getDisasterTypes(breakdown);
+  const facts = buildSituationFacts({
+    assessment: breakdown,
+    riskLevel: displayRiskLevel,
+    timestamp: dataTimestamp,
+    online,
+    route: guidanceRoute,
+    routeResult:
+      guidanceRoute?.mode === "WALK" ? routeState.results.walk : routeState.results.drive,
+    shelter: recommendedShelter,
+    shelterResult,
+    alternatives: aiAlternatives,
+  });
 
   const aiRouteReasons = useMemo(
     () =>
@@ -213,31 +328,116 @@ function Home() {
   );
 
   const aiInput = useMemo<GeminiRouteExplanationInput | null>(() => {
-    if (!recommended || !homeRoute) return null;
-    const statusLabel = HOME_ROUTE_STATUS_LABEL[homeRoute.status];
-    const modeLabel = HOME_ROUTE_MODE_LABEL[homeRoute.mode];
+    if (!hasSelectedLocation || (!dataTimestamp && !guidanceRoute)) return null;
     return {
-      question: `기상청 특보, 하천 수위, 침수위험지도, 통제 정보 등을 근거로, ${statusLabel} ${modeLabel} 경로인 ${homeRoute.name}로 ${recommended.s.name}까지 이동할 때 추천 이유와 실제 위험 구간을 구체적으로 설명해줘. 안전점수 ${homeRoute.safetyScore}점.`,
-      riskLevel,
-      recommendedRouteId: homeRoute.id,
-      recommendedShelterId: recommended.s.id,
-      shelterName: recommended.s.name,
-      distanceMeters: homeRoute.distanceMeters,
+      mode: "SITUATION_GUIDANCE",
+      question:
+        "현재 위험도와 지금 해야 할 행동을 먼저 안내하고, 재난별 행동요령, 대피소 추천 근거, 이동 위험과 대체 후보를 설명하세요. 확인되지 않은 현장 정보는 일반 안전 지식과 구분하세요.",
+      riskLevel: displayRiskLevel,
+      selectionKind: selectedShelterId ? "USER_SELECTED" : "AUTO_RECOMMENDED",
+      recommendedRouteId: guidanceRoute?.id,
+      recommendedShelterId: recommended?.s.id,
+      shelterName: recommended?.s.name ?? "확인된 대피소 없음",
+      distanceMeters: recommended?.d,
       routeReasons: aiRouteReasons,
-      dataTimestamp: routeTimestamp(homeRoute, routeState.results),
+      dataTimestamp:
+        !online && lastConfirmedAt
+          ? lastConfirmedAt
+          : guidanceRoute
+            ? (routeTimestamp(guidanceRoute, routeState.results) ?? dataTimestamp ?? "")
+            : (dataTimestamp ?? ""),
+      disasterTypes,
+      facts,
+      alternatives: aiAlternatives,
       allowedProperNouns: [
-        homeRoute.name,
-        recommended.s.name,
-        recommended.s.address,
+        guidanceRoute?.name ?? "",
+        recommended?.s.name ?? "",
+        recommended?.s.address ?? "",
         breakdown.region,
-        statusLabel,
-        modeLabel,
-        ...homeRoute.riskReasons,
+        ...alternativeShelters.flatMap((alternative) => [
+          alternative.shelter.name,
+          alternative.shelter.address,
+        ]),
+        ...facts.map((fact) => fact.text),
       ],
     };
-  }, [aiRouteReasons, recommended, riskLevel, homeRoute, breakdown, routeState.results]);
+  }, [
+    aiRouteReasons,
+    recommended,
+    displayRiskLevel,
+    guidanceRoute,
+    breakdown,
+    routeState.results,
+    online,
+    lastConfirmedAt,
+    hasSelectedLocation,
+    dataTimestamp,
+    selectedShelterId,
+    disasterTypes,
+    facts,
+    aiAlternatives,
+    alternativeShelters,
+  ]);
 
   const { data: aiAdvice, isLoading: isAiLoading } = useAiAdvice(aiInput);
+  const hasUsableEmergencyRoute = routeState.routes.some(
+    (route) => route.status === "RECOMMENDED" || route.status === "ALTERNATIVE",
+  );
+  const emergencyVariant: EmergencyBarVariant =
+    !isOriginSheltersLoading && originShelters.length === 0
+      ? "call"
+      : !routeState.isLoading && !hasUsableEmergencyRoute
+        ? "shelters"
+        : "route";
+
+  const handleEmergencyAction = () => {
+    if (emergencyVariant === "shelters") {
+      void navigate({ to: "/shelters" });
+      return;
+    }
+    void navigate({
+      to: "/routes",
+      search: { mode: "safest", auto: true },
+    });
+  };
+
+  useEffect(() => {
+    if (!online || !breakdown.isCurrentDataConfirmed || !currentDataTimestamp) return;
+    setLastConfirmedAt(currentDataTimestamp);
+  }, [breakdown.isCurrentDataConfirmed, currentDataTimestamp, online, setLastConfirmedAt]);
+
+  const verifiedAdvice = aiAdvice && aiAdvice.verified !== false ? aiAdvice : null;
+  const offlineActionTitle = verifiedAdvice?.judgementLabel ?? RISK_META[riskLevel].actionTitle;
+  const offlineActionBody = verifiedAdvice?.reasons.length
+    ? verifiedAdvice.reasons.join(" ")
+    : RISK_META[riskLevel].actionBody;
+
+  useEffect(() => {
+    if (
+      !online ||
+      !breakdown.isCurrentDataConfirmed ||
+      !currentDataTimestamp ||
+      !recommendedShelter
+    ) {
+      return;
+    }
+    setLastRecommendation({
+      shelter: recommendedShelter,
+      route: currentHomeRoute ?? null,
+      actionTitle: offlineActionTitle,
+      actionBody: offlineActionBody,
+      confirmedAt: currentDataTimestamp,
+    });
+  }, [
+    offlineActionTitle,
+    offlineActionBody,
+    breakdown.isCurrentDataConfirmed,
+    currentDataTimestamp,
+    currentHomeRoute,
+    online,
+    recommendedShelter,
+    setLastRecommendation,
+  ]);
 
   if (!hydrated) return <HomeSkeleton />;
 
@@ -276,43 +476,69 @@ function Home() {
 
   return (
     <div className="flex flex-col flex-1 relative">
-      {riskLevel === "CRITICAL" && <CriticalWarningBanner />}
+      {isEmergency && <CriticalWarningBanner />}
 
       {hasSelectedLocation && (
-        <div
-          style={{ height: "calc(100vh - 56px - 64px - 240px)", minHeight: 240 }}
-          className="relative"
-        >
+        <ActionCard
+          level={displayRiskLevel}
+          riskScore={breakdown.total}
+          disasterTypes={disasterTypes}
+          facts={facts}
+          shelter={recommended?.s}
+          distanceMeters={recommended?.d}
+          distanceKind={guidanceRoute ? "ROUTE" : "STRAIGHT_LINE"}
+          route={guidanceRoute}
+          alternativeShelters={alternativeShelters}
+          timestamp={dataTimestamp}
+          apiStatus={routeState.apiStatus ?? apiStatus}
+          aiAdvice={aiAdvice ?? undefined}
+          isAiLoading={isAiLoading}
+          shelterLabel={selectedShelterId ? "선택 대피소" : "추천 대피소"}
+          offlineAction={
+            !online && lastRecommendation
+              ? { title: lastRecommendation.actionTitle, body: lastRecommendation.actionBody }
+              : undefined
+          }
+        />
+      )}
+
+      {hasSelectedLocation && (
+        <div style={{ height: 320, minHeight: 280 }} className="relative">
           <ClientMap
             center={origin}
             zoom={14}
-            shelters={shelters}
+            shelters={displayedMapShelters}
             routes={routes}
             wmsLayers={wmsLayers}
             selectedShelterId={selectedShelterId}
-            onShelterClick={(shelter) => setSelectedShelterId(shelter.id)}
+            onShelterClick={(shelter) => {
+              setSelectedShelterOverride(shelter);
+              setSelectedShelterId(shelter.id);
+            }}
             showCurrentLocationButton
             onCurrentLocationClick={requestLocation}
             isCurrentLocationLoading={isRequestingLocation}
-            cctvs={showCctv ? cctvCameras : []}
+            cctvs={CCTV_ENABLED && showCctv ? cctvCameras : []}
             trafficEvents={trafficEvents}
             onBoundsChanged={updateMapBounds}
           />
-          <button
-            type="button"
-            onClick={() => setShowCctv(!showCctv)}
-            className={`absolute left-3 top-3 inline-flex h-10 items-center gap-1.5 rounded-[10px] border px-3 text-[13px] font-extrabold shadow-sm z-[1000] transition-colors ${
-              showCctv
-                ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                : "border-[var(--border-soft)] bg-white/95 text-[var(--text)]"
-            }`}
-            aria-pressed={showCctv}
-            aria-label="CCTV 켜기/끄기"
-          >
-            <Camera size={16} aria-hidden />
-            CCTV {showCctv ? "끄기" : "켜기"}
-          </button>
-          
+          {CCTV_ENABLED && (
+            <button
+              type="button"
+              onClick={() => setShowCctv(!showCctv)}
+              className={`absolute left-3 top-3 inline-flex h-10 items-center gap-1.5 rounded-[10px] border px-3 text-[13px] font-extrabold shadow-sm z-[1000] transition-colors ${
+                showCctv
+                  ? "border-[var(--primary)] bg-[var(--primary)] text-white"
+                  : "border-[var(--border-soft)] bg-white/95 text-[var(--text)]"
+              }`}
+              aria-pressed={showCctv}
+              aria-label="CCTV 켜기/끄기"
+            >
+              <Camera size={16} aria-hidden />
+              CCTV {showCctv ? "끄기" : "켜기"}
+            </button>
+          )}
+
           <WmsLegend />
         </div>
       )}
@@ -321,8 +547,11 @@ function Home() {
         <ShelterPicker
           shelters={shelterOptions}
           selectedShelterId={selectedShelterId}
-          isLoading={isSheltersLoading}
-          onSelect={setSelectedShelterId}
+          isLoading={isOriginSheltersLoading}
+          onSelect={(id) => {
+            setSelectedShelterId(id);
+            if (!id) setSelectedShelterOverride(null);
+          }}
         />
       )}
 
@@ -339,20 +568,16 @@ function Home() {
       )}
 
       {hasSelectedLocation && (
-        <ActionCard
-          level={riskLevel}
-          shelter={recommended?.s}
-          distanceMeters={recommended?.d}
-          timestamp={DATA_TIMESTAMP}
-          apiStatus={routeState.apiStatus ?? apiStatus}
-          aiAdvice={aiAdvice ?? undefined}
-          isAiLoading={isAiLoading}
-          shelterLabel={selectedShelterId ? "선택 대피소" : "추천 대피소"}
-        />
+        <WeatherPanel weather={breakdown.weather} warnings={breakdown.weatherWarningAlerts} />
       )}
-
-      {hasSelectedLocation && <WeatherPanel weather={breakdown.weather} />}
       {hasSelectedLocation && <SafeMapEvidencePanel evidence={breakdown.safeMapEvidence} />}
+
+      {hasSelectedLocation && isEmergency ? (
+        <EmergencyBar
+          variant={emergencyVariant}
+          onAction={emergencyVariant === "call" ? undefined : handleEmergencyAction}
+        />
+      ) : null}
 
       {showPerm && !hasSelectedLocation && (
         <LocationPermissionPrompt

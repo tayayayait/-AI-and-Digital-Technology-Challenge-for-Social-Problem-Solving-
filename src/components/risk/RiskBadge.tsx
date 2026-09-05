@@ -1,14 +1,26 @@
 import { RISK_META, riskClass } from "@/lib/risk";
 import type { RiskLevel } from "@/lib/types";
 
-export function RiskBadge({ level, size = "md" }: { level: RiskLevel; size?: "sm" | "md" }) {
-  const c = riskClass(level);
+export function RiskBadge({
+  level,
+  size = "md",
+  stale = false,
+}: {
+  level: RiskLevel;
+  size?: "sm" | "md";
+  stale?: boolean;
+}) {
+  const c = riskClass(stale ? "UNKNOWN" : level);
   const h = size === "sm" ? 22 : 28;
   const fs = size === "sm" ? 12 : 13;
   return (
     <span
       role="status"
-      aria-label={`현재 위험도: ${RISK_META[level].label}`}
+      aria-label={
+        stale
+          ? `정보가 오래된 마지막 위험도: ${RISK_META[level].label}`
+          : `현재 위험도: ${RISK_META[level].label}`
+      }
       className="inline-flex items-center gap-1.5 font-extrabold tnum"
       style={{
         background: c.bg,

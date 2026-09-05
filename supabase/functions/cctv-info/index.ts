@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson } from "../_shared/upstream.ts";
 
@@ -23,6 +23,7 @@ interface CctvFeed {
   format: string;
   name: string;
   source: string;
+  _updatedAt?: string;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -105,7 +106,7 @@ const readItems = (upstream: Record<string, unknown>) => {
   if (upstream.data) return toArray(upstream.data);
   const body = upstream.body;
   if (isRecord(body)) {
-    const items = (body as any).items;
+    const items = body.items;
     return toArray(isRecord(items) ? (items.item ?? items) : items);
   }
   return [];
@@ -138,9 +139,7 @@ const normalizeCctv = (item: Record<string, unknown>, index: number): CctvFeed |
 };
 
 const readApiKey = () =>
-  Deno.env.get("ITS_CCTV_API_KEY")?.trim() ||
-  Deno.env.get("ITS_API_KEY")?.trim() ||
-  "0e2cff1c020f453eabf61712ee429569";
+  Deno.env.get("ITS_CCTV_API_KEY")?.trim() || Deno.env.get("ITS_API_KEY")?.trim() || "";
 
 const distanceMeters = (a: LatLng, b: LatLng): number => {
   const dLat = (b.lat - a.lat) * 111_320;
@@ -186,12 +185,16 @@ const fetchAllRoadCctvs = async (
   try {
     const all = await fetchCctvByType(apiKey, "all", cctvType, bounds);
     if (all.length > 0) return all;
-  } catch {}
+  } catch {
+    // Some deployments do not support the combined road type; try narrower types below.
+  }
 
   try {
     const expressway = await fetchCctvByType(apiKey, "ex", cctvType, bounds);
     if (expressway.length > 0) return expressway;
-  } catch {}
+  } catch {
+    // Expressway coverage is optional; continue with the national-road feed.
+  }
 
   try {
     return await fetchCctvByType(apiKey, "its", cctvType, bounds);
@@ -266,166 +269,169 @@ const fetchKwaterCctvs = async (
   }
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const input = parseRequest(await parseJsonBody(request));
-    const apiKey = readApiKey();
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const input = parseRequest(await parseJsonBody(request));
+      const apiKey = readApiKey();
 
-    if (!apiKey) {
-      return jsonOk({
-        cameras: [],
-        source: SOURCE,
-        status: "PENDING_ACCESS",
-        message: "ITS_CCTV_API_KEY is not configured",
-      });
-    }
-
-    const bounds = input.bounds;
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-
-    let supabaseAdmin = null;
-    let cachedCameras: CctvFeed[] | null = null;
-
-    if (supabaseUrl && supabaseKey) {
-      supabaseAdmin = createClient(supabaseUrl, supabaseKey);
-
-      const { data: cached, error } = await supabaseAdmin
-        .from("cctv_cameras")
-        .select("*")
-        .gte("lng", bounds.minX)
-        .lte("lng", bounds.maxX)
-        .gte("lat", bounds.minY)
-        .lte("lat", bounds.maxY);
-
-      if (cached && cached.length > 0) {
-        cachedCameras = cached.map((row) => ({
-          id: row.id,
-          name: row.name,
-          position: { lat: row.lat, lng: row.lng },
-          streamUrl: row.stream_url,
-          cctvType: row.cctv_type || "4",
-          format: row.format || "HLS",
-          source: row.source || SOURCE,
-          _updatedAt: row.updated_at,
-        }));
+      if (!apiKey) {
+        return jsonOk({
+          cameras: [],
+          source: SOURCE,
+          status: "PENDING_ACCESS",
+          message: "ITS_CCTV_API_KEY is not configured",
+        });
       }
-    }
 
-    let needsRevalidation = false;
-    if (cachedCameras && cachedCameras.length > 0) {
-      // ITS CCTV HLS URL 토큰은 수 분 내에 만료되므로 캐시 유지 시간을 2분으로 단축합니다.
-      const cacheExpirationTime = Date.now() - 2 * 60 * 1000;
-      for (const cam of cachedCameras) {
-        if (new Date((cam as any)._updatedAt).getTime() < cacheExpirationTime) {
-          needsRevalidation = true;
-          break;
+      const bounds = input.bounds;
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+      const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+
+      let supabaseAdmin = null;
+      let cachedCameras: CctvFeed[] | null = null;
+
+      if (supabaseUrl && supabaseKey) {
+        supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+
+        const { data: cached, error } = await supabaseAdmin
+          .from("cctv_cameras")
+          .select("*")
+          .gte("lng", bounds.minX)
+          .lte("lng", bounds.maxX)
+          .gte("lat", bounds.minY)
+          .lte("lat", bounds.maxY);
+
+        if (cached && cached.length > 0) {
+          cachedCameras = cached.map((row) => ({
+            id: row.id,
+            name: row.name,
+            position: { lat: row.lat, lng: row.lng },
+            streamUrl: row.stream_url,
+            cctvType: row.cctv_type || "4",
+            format: row.format || "HLS",
+            source: row.source || SOURCE,
+            _updatedAt: row.updated_at,
+          }));
         }
       }
-    }
 
-    if (cachedCameras && cachedCameras.length > 0 && !needsRevalidation) {
-      const limit =
-        input.limit == null ? 300 : Math.min(Math.max(Math.trunc(input.limit), 1), 5000);
-      const cameras = cachedCameras
-        .sort(
-          (a, b) =>
-            distanceMeters(input.center, a.position) - distanceMeters(input.center, b.position),
-        )
-        .slice(0, limit);
-
-      return jsonOk({ cameras, source: "Supabase DB Cache", status: "OK" });
-    }
-
-    const runFetchAndSync = async () => {
-      try {
-        const fetchTasks: Promise<CctvFeed[]>[] = [];
-
-        if (input.roadType === "all") {
-          fetchTasks.push(fetchAllRoadCctvs(apiKey, input.cctvType, bounds));
-        } else {
-          fetchTasks.push(fetchCctvByType(apiKey, input.roadType, input.cctvType, bounds));
-        }
-
-        const kwaterKey = readKwaterKey();
-        if (kwaterKey) {
-          fetchTasks.push(fetchKwaterCctvs(kwaterKey, bounds));
-        }
-
-        const results = await Promise.allSettled(fetchTasks);
-        const allFetched = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
-
-        const seen = new Set<string>();
-        const allCameras: CctvFeed[] = [];
-        for (const cam of allFetched) {
-          const key = dedupeKey(cam);
-          if (!seen.has(key)) {
-            seen.add(key);
-            allCameras.push(cam);
+      let needsRevalidation = false;
+      if (cachedCameras && cachedCameras.length > 0) {
+        // ITS CCTV HLS URL 토큰은 수 분 내에 만료되므로 캐시 유지 시간을 2분으로 단축합니다.
+        const cacheExpirationTime = Date.now() - 2 * 60 * 1000;
+        for (const cam of cachedCameras) {
+          if (new Date(cam._updatedAt ?? 0).getTime() < cacheExpirationTime) {
+            needsRevalidation = true;
+            break;
           }
         }
-
-        if (supabaseAdmin && allCameras.length > 0) {
-          await supabaseAdmin.from("cctv_cameras").upsert(
-            allCameras.map((c) => ({
-              id: c.id,
-              name: c.name,
-              lat: c.position.lat,
-              lng: c.position.lng,
-              stream_url: c.streamUrl,
-              cctv_type: c.cctvType,
-              format: c.format,
-              source: c.source,
-              updated_at: new Date().toISOString(),
-            })),
-          );
-        }
-        return { allCameras, kwaterKey };
-      } catch (err) {
-        console.error("Background sync failed", err);
-        return null;
       }
-    };
 
-    if (cachedCameras && cachedCameras.length > 0 && needsRevalidation) {
-      runFetchAndSync();
+      if (cachedCameras && cachedCameras.length > 0 && !needsRevalidation) {
+        const limit =
+          input.limit == null ? 300 : Math.min(Math.max(Math.trunc(input.limit), 1), 5000);
+        const cameras = cachedCameras
+          .sort(
+            (a, b) =>
+              distanceMeters(input.center, a.position) - distanceMeters(input.center, b.position),
+          )
+          .slice(0, limit);
+
+        return jsonOk({ cameras, source: "Supabase DB Cache", status: "OK" });
+      }
+
+      const runFetchAndSync = async () => {
+        try {
+          const fetchTasks: Promise<CctvFeed[]>[] = [];
+
+          if (input.roadType === "all") {
+            fetchTasks.push(fetchAllRoadCctvs(apiKey, input.cctvType, bounds));
+          } else {
+            fetchTasks.push(fetchCctvByType(apiKey, input.roadType, input.cctvType, bounds));
+          }
+
+          const kwaterKey = readKwaterKey();
+          if (kwaterKey) {
+            fetchTasks.push(fetchKwaterCctvs(kwaterKey, bounds));
+          }
+
+          const results = await Promise.allSettled(fetchTasks);
+          const allFetched = results.flatMap((r) => (r.status === "fulfilled" ? r.value : []));
+
+          const seen = new Set<string>();
+          const allCameras: CctvFeed[] = [];
+          for (const cam of allFetched) {
+            const key = dedupeKey(cam);
+            if (!seen.has(key)) {
+              seen.add(key);
+              allCameras.push(cam);
+            }
+          }
+
+          if (supabaseAdmin && allCameras.length > 0) {
+            await supabaseAdmin.from("cctv_cameras").upsert(
+              allCameras.map((c) => ({
+                id: c.id,
+                name: c.name,
+                lat: c.position.lat,
+                lng: c.position.lng,
+                stream_url: c.streamUrl,
+                cctv_type: c.cctvType,
+                format: c.format,
+                source: c.source,
+                updated_at: new Date().toISOString(),
+              })),
+            );
+          }
+          return { allCameras, kwaterKey };
+        } catch (err) {
+          console.error("Background sync failed", err);
+          return null;
+        }
+      };
+
+      if (cachedCameras && cachedCameras.length > 0 && needsRevalidation) {
+        runFetchAndSync();
+
+        const limit =
+          input.limit == null ? 300 : Math.min(Math.max(Math.trunc(input.limit), 1), 5000);
+        const cameras = cachedCameras
+          .sort(
+            (a, b) =>
+              distanceMeters(input.center, a.position) - distanceMeters(input.center, b.position),
+          )
+          .slice(0, limit);
+
+        return jsonOk({
+          cameras,
+          source: "Supabase DB Cache (Stale-While-Revalidate)",
+          status: "OK",
+        });
+      }
+
+      const syncResult = await runFetchAndSync();
+      if (!syncResult) throw new Error("Failed to fetch live CCTV data");
 
       const limit =
         input.limit == null ? 300 : Math.min(Math.max(Math.trunc(input.limit), 1), 5000);
-      const cameras = cachedCameras
+      const cameras = syncResult.allCameras
         .sort(
           (a, b) =>
             distanceMeters(input.center, a.position) - distanceMeters(input.center, b.position),
         )
         .slice(0, limit);
 
-      return jsonOk({
-        cameras,
-        source: "Supabase DB Cache (Stale-While-Revalidate)",
-        status: "OK",
-      });
+      const sources = [SOURCE];
+      if (syncResult.kwaterKey) sources.push(KWATER_SOURCE);
+
+      return jsonOk({ cameras, source: sources.join(" + ") + " (Live API)", status: "OK" });
+    } catch (error) {
+      return edgeError(error);
     }
-
-    const syncResult = await runFetchAndSync();
-    if (!syncResult) throw new Error("Failed to fetch live CCTV data");
-
-    const limit = input.limit == null ? 300 : Math.min(Math.max(Math.trunc(input.limit), 1), 5000);
-    const cameras = syncResult.allCameras
-      .sort(
-        (a, b) =>
-          distanceMeters(input.center, a.position) - distanceMeters(input.center, b.position),
-      )
-      .slice(0, limit);
-
-    const sources = [SOURCE];
-    if (syncResult.kwaterKey) sources.push(KWATER_SOURCE);
-
-    return jsonOk({ cameras, source: sources.join(" + ") + " (Live API)", status: "OK" });
-  } catch (error) {
-    return edgeError(error);
-  }
-});
+  }),
+);

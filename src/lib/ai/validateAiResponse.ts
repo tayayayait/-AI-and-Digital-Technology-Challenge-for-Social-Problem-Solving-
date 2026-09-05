@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { AiAnswer } from "@/lib/types";
+import type { AiAnswer, AiGuidanceItem, SafetyFact } from "@/lib/types";
 
 export const ALLOWED_AI_ACTIONS = [
   "WAIT",
@@ -20,6 +20,17 @@ export const ACTION_LABEL: Record<(typeof ALLOWED_AI_ACTIONS)[number], string> =
   CHECK_OFFICIAL_NOTICE: "공식 안내 확인",
 };
 
+const guidanceItemSchema = z.object({
+  text: z.string().min(1).max(320),
+  sourceKind: z.enum(["LIVE_DATA", "GENERAL_KNOWLEDGE"]),
+  evidenceRefs: z.array(z.string().min(1).max(100)).max(8),
+});
+
+const alternativeShelterReasonSchema = z.object({
+  shelterId: z.string().min(1).max(100),
+  reason: guidanceItemSchema,
+});
+
 const aiAnswerSchema = z.object({
   judgement: z.enum(ALLOWED_AI_ACTIONS),
   judgementLabel: z.string().optional(),
@@ -27,45 +38,61 @@ const aiAnswerSchema = z.object({
   basis: z.array(z.string()).optional().default([]),
   timestamp: z.string().optional(),
   verified: z.boolean().optional(),
+  riskSummary: guidanceItemSchema.optional(),
+  immediateActions: z.array(guidanceItemSchema).max(4).optional(),
+  disasterActions: z.array(guidanceItemSchema).max(4).optional(),
+  recommendedShelterReason: guidanceItemSchema.optional(),
+  movementWarnings: z.array(guidanceItemSchema).max(5).optional(),
+  alternativeShelterReasons: z.array(alternativeShelterReasonSchema).max(3).optional(),
 });
 
 const PROPER_NOUN_PATTERN =
   /[가-힣A-Za-z0-9]+(?:초등학교|중학교|고등학교|주민센터|구민회관|병원|대피소|지하차도)/g;
-const COMMON_ALLOWED_TERMS = [
-  "대피소",
-  "지하차도",
-  "안전",
-  "경로",
-  "위험",
-  "침수",
-  "범람",
-  "통제",
-  "대피",
-  "이동",
-];
+const COMMON_ALLOWED_TERMS = ["안전", "경로", "위험", "침수", "범람", "통제", "대피", "이동"];
 
 const containsUnknownProperNoun = (text: string, allowedTerms: string[]) => {
   const matches = text.match(PROPER_NOUN_PATTERN) ?? [];
-  const allowList = [...allowedTerms, ...COMMON_ALLOWED_TERMS];
+  const allowList = [...allowedTerms, ...COMMON_ALLOWED_TERMS].map((term) =>
+    term.replace(/\s+/g, ""),
+  );
 
   return matches.some((match) => {
-    // match (예: "도원센트럴대피소") 가 allowList의 어떤 항목이라도 부분 일치하면 통과
+    const normalizedMatch = match.replace(/\s+/g, "");
     const isAllowed = allowList.some((term) => {
-      // term이 match에 포함되거나 (예: "도원센트럴대피소".includes("대피소"))
-      // match가 term에 포함되거나 (예: "힐스테이트 도원센트럴".includes("도원센트럴"))
-      // 접미사를 제거한 핵심 명사가 포함되는지 확인
-      const coreNoun = match.replace(
+      const coreNoun = normalizedMatch.replace(
         /(초등학교|중학교|고등학교|주민센터|구민회관|병원|대피소|지하차도)$/,
         "",
       );
-      return (
-        term.includes(match) ||
-        match.includes(term) ||
-        (coreNoun.length > 0 && term.includes(coreNoun))
-      );
+      return term.includes(normalizedMatch) || (coreNoun.length >= 2 && term.includes(coreNoun));
     });
     return !isAllowed;
   });
+};
+
+const CURRENT_MEASUREMENT_PATTERN = /\d+(?:\.\d+)?\s*(?:mm|cm|km|m|℃|점|%|분|시간당|단계)/i;
+const measurements = (text: string) =>
+  (text.match(new RegExp(CURRENT_MEASUREMENT_PATTERN.source, "gi")) ?? []).map((value) =>
+    value.replace(/\s+/g, "").toLowerCase(),
+  );
+
+const collectGuidanceItems = (answer: z.infer<typeof aiAnswerSchema>) => [
+  ...(answer.riskSummary ? [answer.riskSummary] : []),
+  ...(answer.immediateActions ?? []),
+  ...(answer.disasterActions ?? []),
+  ...(answer.recommendedShelterReason ? [answer.recommendedShelterReason] : []),
+  ...(answer.movementWarnings ?? []),
+  ...(answer.alternativeShelterReasons ?? []).map((item) => item.reason),
+];
+
+const hasInvalidGuidanceSource = (item: AiGuidanceItem, knownFactIds: Set<string>) => {
+  if (item.sourceKind === "LIVE_DATA") {
+    return (
+      item.evidenceRefs.length === 0 ||
+      item.evidenceRefs.some((reference) => !knownFactIds.has(reference))
+    );
+  }
+
+  return item.evidenceRefs.length > 0 || CURRENT_MEASUREMENT_PATTERN.test(item.text);
 };
 
 export const validateAiResponse = ({
@@ -73,15 +100,71 @@ export const validateAiResponse = ({
   fallback,
   timestamp,
   allowedTerms,
+  factIds = [],
+  facts = [],
+  allowedShelterIds = [],
+  requireStructured = false,
 }: {
   data: unknown;
   fallback: AiAnswer;
   timestamp: string;
   allowedTerms: string[];
+  factIds?: string[];
+  facts?: SafetyFact[];
+  allowedShelterIds?: string[];
+  requireStructured?: boolean;
 }): AiAnswer => {
   const parsed = aiAnswerSchema.safeParse(data);
   if (!parsed.success) {
-    console.warn("[AI Validation] Zod parsing failed:", parsed.error.issues, "Data:", data);
+    console.warn("[AI Validation] Response schema validation failed.");
+    return fallback;
+  }
+
+  if (
+    requireStructured &&
+    (!parsed.data.riskSummary ||
+      !parsed.data.immediateActions?.length ||
+      !parsed.data.disasterActions?.length ||
+      !parsed.data.recommendedShelterReason ||
+      !parsed.data.movementWarnings?.length ||
+      !parsed.data.alternativeShelterReasons)
+  ) {
+    console.warn("[AI Validation] Structured guidance fields are missing.");
+    return fallback;
+  }
+
+  const knownFactIds = new Set(factIds);
+  const guidanceItems = collectGuidanceItems(parsed.data);
+  if (guidanceItems.some((item) => hasInvalidGuidanceSource(item, knownFactIds))) {
+    console.warn("[AI Validation] Guidance cited an invalid source.");
+    return fallback;
+  }
+  if (
+    facts.length > 0 &&
+    guidanceItems.some((item) => {
+      if (item.sourceKind !== "LIVE_DATA") return false;
+      const sourceValues = new Set(
+        measurements(
+          facts
+            .filter((fact) => item.evidenceRefs.includes(fact.id))
+            .map((fact) => fact.text)
+            .join(" "),
+        ),
+      );
+      return measurements(item.text).some((value) => !sourceValues.has(value));
+    })
+  ) {
+    console.warn("[AI Validation] Measurement was not present in cited facts.");
+    return fallback;
+  }
+
+  const allowedShelterIdSet = new Set(allowedShelterIds);
+  if (
+    (parsed.data.alternativeShelterReasons ?? []).some(
+      ({ shelterId }) => !allowedShelterIdSet.has(shelterId),
+    )
+  ) {
+    console.warn("[AI Validation] Guidance cited an unknown alternative shelter.");
     return fallback;
   }
 
@@ -89,9 +172,10 @@ export const validateAiResponse = ({
     parsed.data.judgementLabel ?? "",
     ...parsed.data.reasons,
     ...parsed.data.basis,
+    ...guidanceItems.map((item) => item.text),
   ].join(" ");
   if (containsUnknownProperNoun(textForProperNounCheck, allowedTerms)) {
-    console.warn("[AI Validation] Proper noun check failed for text:", textForProperNounCheck);
+    console.warn("[AI Validation] Unknown place name in guidance.");
     return fallback;
   }
 
@@ -102,5 +186,11 @@ export const validateAiResponse = ({
     basis: parsed.data.basis,
     timestamp,
     verified: true,
+    riskSummary: parsed.data.riskSummary,
+    immediateActions: parsed.data.immediateActions,
+    disasterActions: parsed.data.disasterActions,
+    recommendedShelterReason: parsed.data.recommendedShelterReason,
+    movementWarnings: parsed.data.movementWarnings,
+    alternativeShelterReasons: parsed.data.alternativeShelterReasons,
   };
 };

@@ -59,7 +59,7 @@ export function createCurrentLocationMarkerIcon(
 ): NaverHtmlMarkerIcon {
   return markerIcon(
     maps,
-    `<span role="img" aria-label="현재 위치" style="
+    `<span class="a11y-map-marker" role="img" aria-label="현재 위치" style="
       display:block;width:18px;height:18px;border-radius:999px;
       border:3px solid #fff;background:#2563eb;
       box-shadow:0 1px 4px rgba(15,23,42,.24);
@@ -74,7 +74,7 @@ export function createSelectedLocationMarkerIcon(
 ): NaverHtmlMarkerIcon {
   return markerIcon(
     maps,
-    `<span role="img" aria-label="CCTV 조회 위치: ${escapeHtml(label)}" style="
+    `<span class="a11y-map-marker" role="img" aria-label="CCTV 조회 위치: ${escapeHtml(label)}" style="
       display:flex;align-items:center;justify-content:center;width:34px;height:34px;
       border-radius:999px;border:3px solid #fff;background:#0f172a;color:#fff;
       box-shadow:0 2px 8px rgba(15,23,42,.28);font-size:15px;font-weight:900;
@@ -90,7 +90,7 @@ export function createShelterMarkerIcon(
   const meta = SHELTER_STATUS_META[shelter.status];
   return markerIcon(
     maps,
-    `<button type="button" data-shelter-id="${escapeHtml(shelter.id)}" aria-label="대피소: ${escapeHtml(shelter.name)}, ${meta.label}" style="
+    `<button class="a11y-map-marker" type="button" data-shelter-id="${escapeHtml(shelter.id)}" aria-label="대피소: ${escapeHtml(shelter.name)}, ${meta.label}" style="
       width:28px;height:28px;border-radius:999px;border:2px solid #fff;
       background:${meta.color};color:#fff;font-size:11px;font-weight:900;
       box-shadow:0 1px 4px rgba(15,23,42,.24);
@@ -107,7 +107,7 @@ export function createRiskZoneMarkerIcon(
   const meta = RISK_META[level];
   return markerIcon(
     maps,
-    `<span role="img" aria-label="위험지점: ${escapeHtml(label)}, ${meta.label}" style="
+    `<span class="a11y-map-marker" role="img" aria-label="위험지점: ${escapeHtml(label)}, ${meta.label}" style="
       display:flex;align-items:center;justify-content:center;width:32px;height:32px;
       transform:rotate(45deg);border:2px solid #fff;background:${meta.color};color:#fff;
       box-shadow:0 1px 4px rgba(15,23,42,.24);font-size:14px;font-weight:900;
@@ -122,7 +122,7 @@ export function createControlMarkerIcon(
 ): NaverHtmlMarkerIcon {
   return markerIcon(
     maps,
-    `<span role="img" aria-label="통제 정보: ${escapeHtml(label)}" style="
+    `<span class="a11y-map-marker" role="img" aria-label="통제 정보: ${escapeHtml(label)}" style="
       display:flex;align-items:center;justify-content:center;width:28px;height:28px;
       border-radius:8px;border:2px solid #fff;background:#dc2626;color:#fff;
       box-shadow:0 1px 4px rgba(15,23,42,.24);font-size:14px;font-weight:900;
@@ -145,7 +145,7 @@ export function createTrafficEventMarkerIcon(
 
   return markerIcon(
     maps,
-    `<button type="button" data-traffic-event-id="${escapeHtml(event.id)}" aria-label="돌발상황: ${escapeHtml(event.message)}" style="
+    `<button class="a11y-map-marker" type="button" data-traffic-event-id="${escapeHtml(event.id)}" aria-label="돌발상황: ${escapeHtml(event.message)}" style="
       display:flex;align-items:center;justify-content:center;min-width:34px;height:28px;
       border-radius:8px;border:2px solid #fff;background:${color};color:#fff;
       box-shadow:0 1px 5px rgba(15,23,42,.28);font-size:11px;font-weight:900;
@@ -162,7 +162,7 @@ export function createCctvMarkerIcon(
 ): NaverHtmlMarkerIcon {
   return markerIcon(
     maps,
-    `<button type="button" data-cctv-id="${escapeHtml(cctvId)}" aria-label="CCTV: ${escapeHtml(name)}" style="
+    `<button class="a11y-map-marker" type="button" data-cctv-id="${escapeHtml(cctvId)}" aria-label="CCTV: ${escapeHtml(name)}" style="
       display:flex;align-items:center;justify-content:center;width:28px;height:28px;
       border-radius:6px;border:2px solid #fff;background:#2563eb;color:#fff;
       box-shadow:0 1px 4px rgba(15,23,42,.24);

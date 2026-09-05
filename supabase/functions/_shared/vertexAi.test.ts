@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import {
+  buildInlineImagePart,
   buildVertexAiGenerateContentUrl,
   getVertexAiAccessToken,
   getVertexAiAuthConfigFromEnv,
@@ -47,5 +48,11 @@ describe("Vertex AI helpers", () => {
         serviceAccountJson: "not-json",
       }),
     ).resolves.toBe("direct-token");
+  });
+
+  test("builds a Gemini inline image part from a validated frame", () => {
+    expect(buildInlineImagePart({ mimeType: "image/jpeg", data: "YWJj" })).toEqual({
+      inlineData: { mimeType: "image/jpeg", data: "YWJj" },
+    });
   });
 });

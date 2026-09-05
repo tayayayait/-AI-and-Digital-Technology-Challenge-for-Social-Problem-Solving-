@@ -3,8 +3,11 @@ import { useMemo, useState } from "react";
 import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
+import { measureApiHealth } from "@/lib/api/measureApiHealth";
+import type { ApiResult } from "@/lib/api/types";
 import { RISK_META } from "@/lib/risk";
 import type { RiskLevel } from "@/lib/types";
+import { API_HEALTH_SOURCE_NAMES } from "@/store/apiHealth";
 
 interface NoticeGeneratorProps {
   region: string;
@@ -25,7 +28,7 @@ const noticeResponseSchema = z.object({
 const PROPER_NOUN_PATTERN =
   /[가-힣A-Za-z0-9]+(?:초등학교|중학교|고등학교|주민센터|구민회관|병원|대피소|지하차도|역|구|동|시청|구청|소방서|경찰서)/g;
 
-const COMMON_ALLOWED_TERMS = ["대피소", "지하차도", "강남구", "서울", "주민센터"];
+const COMMON_ALLOWED_TERMS = ["대피소", "지하차도", "주민센터", "이동"];
 
 const withTimeout = <T,>(promise: Promise<T>, ms: number) =>
   Promise.race<T>([
@@ -102,36 +105,50 @@ export function NoticeGenerator(props: NoticeGeneratorProps) {
     setStatus("Gemini notice function 호출 중");
 
     try {
-      const response = await withTimeout(
-        supabase.functions.invoke("gemini-notice", {
-          body: {
+      const measured = await measureApiHealth({
+        name: API_HEALTH_SOURCE_NAMES.geminiNotice,
+        source: "gemini-notice",
+        run: async (): Promise<ApiResult<z.infer<typeof noticeResponseSchema>>> => {
+          const response = await withTimeout(
+            supabase.functions.invoke("gemini-notice", {
+              body: {
+                region: props.region,
+                riskLevel: props.riskLevel,
+                riskFactors: props.riskFactors,
+                recommendedAction: props.recommendedAction,
+                dataTimestamp: props.dataTimestamp,
+                allowedProperNouns: props.allowedProperNouns,
+              },
+            }),
+            8000,
+          );
+
+          if (response.error) throw new Error(response.error.message);
+          const parsed = noticeResponseSchema.safeParse(response.data);
+          if (!parsed.success) throw new Error("notice schema mismatch");
+
+          const validationError = validateNoticeText({
+            text: parsed.data.summary,
             region: props.region,
-            riskLevel: props.riskLevel,
-            riskFactors: props.riskFactors,
             recommendedAction: props.recommendedAction,
             dataTimestamp: props.dataTimestamp,
             allowedProperNouns: props.allowedProperNouns,
-          },
-        }),
-        8000,
-      );
+          });
+          if (validationError) throw new Error(validationError);
 
-      if (response.error) throw new Error(response.error.message);
-      const parsed = noticeResponseSchema.safeParse(response.data);
-      if (!parsed.success) throw new Error("notice schema mismatch");
-
-      const validationError = validateNoticeText({
-        text: parsed.data.summary,
-        region: props.region,
-        recommendedAction: props.recommendedAction,
-        dataTimestamp: props.dataTimestamp,
-        allowedProperNouns: props.allowedProperNouns,
+          return {
+            data: parsed.data,
+            status: "OK",
+            timestamp: new Date().toISOString(),
+            source: "gemini-notice",
+          };
+        },
       });
-      if (validationError) throw new Error(validationError);
+      if (!measured.data) throw new Error("notice response missing");
 
-      setNotice(parsed.data.summary);
+      setNotice(measured.data.summary);
       setStatus("Gemini 안내문 생성 완료");
-      props.onGenerated?.(parsed.data.summary, true);
+      props.onGenerated?.(measured.data.summary, true);
     } catch (error) {
       const fallbackNotice = fallback;
       setNotice(fallbackNotice);

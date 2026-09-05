@@ -2,9 +2,11 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
 import { API_CACHE_TTL_MS } from "@/lib/api/cache";
+import { measureApiHealth } from "@/lib/api/measureApiHealth";
 import { fetchTrafficEvents } from "@/lib/api/trafficEvents";
 import type { ApiResult } from "@/lib/api/types";
 import type { LatLng, TrafficEvent } from "@/lib/types";
+import { API_HEALTH_SOURCE_NAMES } from "@/store/apiHealth";
 
 const pendingResult = (origin: LatLng): ApiResult<TrafficEvent[]> => ({
   data: [],
@@ -14,44 +16,52 @@ const pendingResult = (origin: LatLng): ApiResult<TrafficEvent[]> => ({
   error: `Traffic event request pending for ${origin.lat.toFixed(4)},${origin.lng.toFixed(4)}`,
 });
 
-export function useTrafficEvents(origin: LatLng) {
+export function useTrafficEvents(origin: LatLng, enabled = true) {
   const lastSuccessfulEventsRef = useRef<TrafficEvent[]>([]);
   const query = useQuery({
     queryKey: ["traffic-events", origin.lat.toFixed(4), origin.lng.toFixed(4)],
     staleTime: API_CACHE_TTL_MS.TRAFFIC_EVENTS,
+    enabled,
     placeholderData: keepPreviousData,
-    queryFn: async (): Promise<ApiResult<TrafficEvent[]>> => {
-      try {
-        const response = await Promise.race([
-          fetchTrafficEvents({ center: origin, radiusMeters: 5000 }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("API Timeout")), 15000)),
-        ]);
+    queryFn: (): Promise<ApiResult<TrafficEvent[]>> =>
+      measureApiHealth({
+        name: API_HEALTH_SOURCE_NAMES.trafficEvents,
+        source: "ITS traffic-events",
+        run: async () => {
+          try {
+            const response = await Promise.race([
+              fetchTrafficEvents({ center: origin, radiusMeters: 5000 }),
+              new Promise<never>((_, reject) =>
+                setTimeout(() => reject(new Error("API Timeout")), 15000),
+              ),
+            ]);
 
-        if (response.status !== "OK") {
-          return {
-            data: [],
-            status: "FALLBACK",
-            timestamp: new Date().toISOString(),
-            source: response.source ?? "ITS traffic-events",
-            error: response.message ?? "Traffic event API pending",
-          };
-        }
+            if (response.status !== "OK") {
+              return {
+                data: [],
+                status: "FALLBACK",
+                timestamp: new Date().toISOString(),
+                source: response.source ?? "ITS traffic-events",
+                error: response.message ?? "Traffic event API pending",
+              };
+            }
 
-        return {
-          data: response.events,
-          status: "OK",
-          timestamp: new Date().toISOString(),
-          source: response.source ?? "ITS traffic-events",
-        };
-      } catch (error) {
-        console.warn("Traffic events fetch failed:", error);
-        return {
-          ...pendingResult(origin),
-          timestamp: new Date().toISOString(),
-          error: error instanceof Error ? error.message : "Traffic event API failed",
-        };
-      }
-    },
+            return {
+              data: response.events,
+              status: "OK",
+              timestamp: new Date().toISOString(),
+              source: response.source ?? "ITS traffic-events",
+            };
+          } catch (error) {
+            console.warn("Traffic events fetch failed:", error);
+            return {
+              ...pendingResult(origin),
+              timestamp: new Date().toISOString(),
+              error: error instanceof Error ? error.message : "Traffic event API failed",
+            };
+          }
+        },
+      }),
   });
 
   const result = query.data ?? pendingResult(origin);

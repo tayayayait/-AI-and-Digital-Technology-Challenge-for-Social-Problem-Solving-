@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import { rankRoutesByRisk } from "@/lib/risk/routeRanking";
-import type { RouteResult, TrafficEvent } from "@/lib/types";
+import type { RouteResult, TrafficEvent, Underpass } from "@/lib/types";
 
 const route = (id: string, lngOffset = 0): RouteResult => ({
   id,
@@ -98,5 +98,89 @@ describe("rankRoutesByRisk removed elevation profiles", () => {
     expect(ranked[0].status).toBe("RECOMMENDED");
     expect(ranked.flatMap((route) => route.riskReasons)).not.toContain("상대적으로 높은 지대 경로");
     expect(ranked.flatMap((route) => route.riskReasons)).not.toContain("저지대 구간 포함");
+  });
+});
+
+describe("rankRoutesByRisk underpass policy", () => {
+  const crossingUnderpass: Underpass = {
+    id: "underpass-1",
+    name: "역삼지하차도",
+    position: { lat: 37.4998, lng: 127.031 },
+    startPosition: { lat: 37.4996, lng: 127.0308 },
+    endPosition: { lat: 37.5, lng: 127.0312 },
+    region: "서울특별시 강남구",
+    source: "국토교통부 전국도로터널정보표준데이터",
+    sourceUpdatedAt: "2025-12-31",
+  };
+
+  test("rejects a wet drive route through an underpass while keeping a safe alternative", () => {
+    const crossing = route("crossing");
+    const avoiding = route("avoiding", 0.05);
+    const ranked = rankRoutesByRisk([crossing, avoiding], [], [], {
+      underpasses: [crossingUnderpass],
+      rainfallMmPerHour: 30,
+      floodWarningLevel: null,
+    });
+
+    expect(ranked.find((candidate) => candidate.id === "crossing")?.status).toBe("REJECTED");
+    expect(ranked.find((candidate) => candidate.id === "avoiding")?.status).toBe("RECOMMENDED");
+  });
+
+  test("retains one least-risk warning route when every drive candidate crosses an underpass", () => {
+    const walk = { ...route("walk-safe"), mode: "WALK" as const, safetyScore: 95 };
+    const ranked = rankRoutesByRisk(
+      [walk, route("best"), { ...route("second"), safetyScore: 82, distanceMeters: 1_500 }],
+      [],
+      [],
+      {
+        underpasses: [crossingUnderpass],
+        rainfallMmPerHour: 30,
+        floodWarningLevel: null,
+      },
+    );
+
+    const driveCandidates = ranked.filter((candidate) => candidate.mode === "DRIVE");
+    expect(driveCandidates.filter((candidate) => candidate.status !== "REJECTED")).toHaveLength(1);
+    expect(driveCandidates[0].id).toBe("best");
+    expect(driveCandidates[0].riskReasons[0]).toContain("최소 위험 경로");
+  });
+
+  test("leaves walking routes unchanged even in a heavy-rain warning", () => {
+    const walk = { ...route("walk"), mode: "WALK" as const };
+    const [ranked] = rankRoutesByRisk([walk], [], [], {
+      underpasses: [crossingUnderpass],
+      rainfallMmPerHour: 50,
+      floodWarningLevel: "CRITICAL",
+    });
+
+    expect(ranked.status).toBe("RECOMMENDED");
+    expect(ranked.safetyScore).toBe(90);
+    expect(ranked.riskReasons).toEqual([]);
+  });
+});
+
+describe("rankRoutesByRisk mobility mode", () => {
+  test("recalculates walking ETA with the documented 45m/min speed", () => {
+    const walk = {
+      ...route("accessible-walk"),
+      mode: "WALK" as const,
+      distanceMeters: 670,
+      durationSeconds: 600,
+    };
+
+    const [ranked] = rankRoutesByRisk([walk], [], [], {}, { mobilityMode: true });
+
+    expect(ranked.durationSeconds).toBe(894);
+    expect(ranked.riskReasons).toContain("이동약자 기준 45m/분으로 도착시간 재계산");
+  });
+
+  test("does not change normal walking or driving ETA", () => {
+    const walk = { ...route("regular-walk"), mode: "WALK" as const };
+    const drive = route("accessible-drive");
+
+    expect(rankRoutesByRisk([walk], [])[0].durationSeconds).toBe(600);
+    expect(rankRoutesByRisk([drive], [], [], {}, { mobilityMode: true })[0].durationSeconds).toBe(
+      600,
+    );
   });
 });

@@ -1,9 +1,10 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 import { API_CACHE_TTL_MS } from "@/lib/api/cache";
 import { fetchCctvFeeds, type CctvFeed, type CctvFeedsRequest } from "@/lib/api/cctvInfo";
 import type { ApiResult } from "@/lib/api/types";
+import { CCTV_ENABLED } from "@/lib/cctv/config";
 import type { LatLng } from "@/lib/types";
 
 const pendingResult = (): ApiResult<CctvFeed[]> => ({
@@ -13,6 +14,13 @@ const pendingResult = (): ApiResult<CctvFeed[]> => ({
   source: "ITS cctvInfo",
   error: `CCTV request pending`,
 });
+
+const emptyCameras: CctvFeed[] = [];
+const disabledResult: ApiResult<CctvFeed[]> = {
+  ...pendingResult(),
+  data: emptyCameras,
+  error: "CCTV_DISABLED",
+};
 
 export const DEFAULT_CCTV_RADIUS_METERS = 5000;
 
@@ -64,8 +72,9 @@ export function useCctvFeeds({
     queryKey,
     staleTime: API_CACHE_TTL_MS.CCTV,
     placeholderData: keepPreviousData,
-    enabled: enabled && (!!bounds || !!center),
+    enabled: CCTV_ENABLED && enabled && (!!bounds || !!center),
     queryFn: async (): Promise<ApiResult<CctvFeed[]>> => {
+      if (!CCTV_ENABLED) return disabledResult;
       try {
         const limitArg = limit === undefined ? {} : { limit };
         const requestArgs = bounds
@@ -94,18 +103,30 @@ export function useCctvFeeds({
     },
   });
 
-  const result = query.data ?? pendingResult();
+  const result = CCTV_ENABLED ? (query.data ?? pendingResult()) : disabledResult;
   useEffect(() => {
     if (result.status === "OK") {
       lastSuccessfulCamerasRef.current = result.data ?? [];
     }
   }, [result]);
 
-  const cameras = result.status === "OK" ? (result.data ?? []) : lastSuccessfulCamerasRef.current;
+  const cameras = !CCTV_ENABLED
+    ? emptyCameras
+    : result.status === "OK"
+      ? (result.data ?? [])
+      : lastSuccessfulCamerasRef.current;
+  const refetchQuery = query.refetch;
+  const refreshCameras = useCallback(async () => {
+    if (!CCTV_ENABLED || !enabled) return [];
+    const refreshed = await refetchQuery();
+    if (refreshed.data?.status !== "OK") return [];
+    return refreshed.data.data ?? [];
+  }, [enabled, refetchQuery]);
 
   return {
     cameras,
     result,
-    isLoading: query.isLoading,
+    isLoading: CCTV_ENABLED && query.isLoading,
+    refreshCameras,
   };
 }

@@ -1,4 +1,4 @@
-import { handleCorsPreflight, jsonOk } from "../_shared/cors.ts";
+import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson, requireEnv } from "../_shared/upstream.ts";
 import {
@@ -111,22 +111,24 @@ const fetchGeminiContent = async (input: ReturnType<typeof parseNoticeRequest>) 
   });
 };
 
-Deno.serve(async (request) => {
-  const preflight = handleCorsPreflight(request);
-  if (preflight) return preflight;
+Deno.serve(
+  withJsonDuration(async (request) => {
+    const preflight = handleCorsPreflight(request);
+    if (preflight) return preflight;
 
-  try {
-    assertAllowedMethod(request.method, ["POST"]);
-    const input = parseNoticeRequest(await parseJsonBody(request));
-    const upstream = await fetchGeminiContent(input);
+    try {
+      assertAllowedMethod(request.method, ["POST"]);
+      const input = parseNoticeRequest(await parseJsonBody(request));
+      const upstream = await fetchGeminiContent(input);
 
-    const parsed = JSON.parse(firstTextPart(upstream) || "{}") as { summary?: string };
-    return jsonOk({
-      summary: String(parsed.summary ?? "").trim(),
-      timestamp: input.dataTimestamp,
-      verified: true,
-    });
-  } catch (error) {
-    return edgeError(error);
-  }
-});
+      const parsed = JSON.parse(firstTextPart(upstream) || "{}") as { summary?: string };
+      return jsonOk({
+        summary: String(parsed.summary ?? "").trim(),
+        timestamp: input.dataTimestamp,
+        verified: true,
+      });
+    } catch (error) {
+      return edgeError(error);
+    }
+  }),
+);

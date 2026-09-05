@@ -3,7 +3,7 @@ import { z } from "zod";
 import { useEffect, useMemo } from "react";
 import { ClientMap } from "@/components/map/ClientMap";
 import { useScenario } from "@/store/scenario";
-import { DATA_TIMESTAMP } from "@/mocks/data";
+import { oldestSuccessfulTimestamp, relativeAge } from "@/lib/api/dataTimestamp";
 import type {
   LocationStatus,
   RiskLevel,
@@ -16,12 +16,15 @@ import { formatDistance, formatDuration, formatTimestamp } from "@/lib/utils";
 import { selectDisplayedMode, type RoutesState, useRoutes } from "@/hooks/useRoutes";
 import { useShelters } from "@/hooks/useShelters";
 import { useTrafficEvents } from "@/hooks/useTrafficEvents";
+import { useRiskAssessment } from "@/hooks/useRiskAssessment";
 
 const search = z.object({
-  mode: z.enum(["WALK", "DRIVE"]).optional(),
+  mode: z.enum(["WALK", "DRIVE", "safest"]).optional(),
+  auto: z.boolean().optional(),
 });
 
-export const routeModeSearch = (mode: RouteMode) => ({ mode });
+export const routeModeSearch = (mode: RouteMode | "safest", auto = false) =>
+  auto ? { mode, auto: true as const } : { mode };
 export const canOpenRoutesPage = (locationStatus: LocationStatus) => locationStatus === "GRANTED";
 
 export const Route = createFileRoute("/routes")({
@@ -68,15 +71,26 @@ function RouteLocationRequired() {
 }
 
 function RoutesPageContent() {
-  const { mode: initial } = Route.useSearch();
+  const { mode: initial, auto } = Route.useSearch();
   const navigate = useNavigate();
-  const mode = initial ?? "WALK";
   const { origin, riskLevel } = useScenario();
 
   // Use real shelters
   const { shelters } = useShelters(origin);
   const { events: trafficEvents } = useTrafficEvents(origin);
-  const routeState = useRoutes({ origin, shelters, trafficEvents });
+  const { weather, floodWarningLevel } = useRiskAssessment(origin);
+  const routeState = useRoutes({
+    origin,
+    shelters,
+    trafficEvents,
+    rainfallMmPerHour: weather?.rainfallMmPerHour,
+    floodWarningLevel,
+  });
+  const autoFocusRecommended = initial === "safest" && auto === true;
+  const recommendedMode =
+    routeState.routes.find((route) => route.status === "RECOMMENDED")?.mode ??
+    selectDisplayedMode("WALK", routeState.routes);
+  const mode = initial === "WALK" || initial === "DRIVE" ? initial : recommendedMode;
 
   const setMode = (nextMode: RouteMode) => {
     void navigate({
@@ -95,6 +109,7 @@ function RoutesPageContent() {
       shelters={shelters}
       riskLevel={riskLevel}
       trafficEvents={trafficEvents}
+      autoFocusRecommended={autoFocusRecommended}
     />
   );
 }
@@ -107,6 +122,7 @@ export function RoutesView({
   shelters,
   riskLevel = "UNKNOWN",
   trafficEvents = [],
+  autoFocusRecommended = false,
 }: {
   origin: { lat: number; lng: number };
   mode: RouteMode;
@@ -115,6 +131,7 @@ export function RoutesView({
   shelters: Shelter[];
   riskLevel?: RiskLevel;
   trafficEvents?: TrafficEvent[];
+  autoFocusRecommended?: boolean;
 }) {
   const displayedMode = selectDisplayedMode(mode, routeState.routes);
   const list = useMemo(
@@ -125,7 +142,20 @@ export function RoutesView({
     () => new Map(shelters.map((shelter) => [shelter.id, shelter])),
     [shelters],
   );
-  const visibleOnMap = useMemo(() => list.filter((r) => r.status !== "REJECTED"), [list]);
+  const { expandedRoutes, collapsedRoutes } = useMemo(() => {
+    if (!autoFocusRecommended) return { expandedRoutes: list, collapsedRoutes: [] };
+    const focusedRoute =
+      list.find((route) => route.status === "RECOMMENDED") ??
+      list.find((route) => route.status !== "REJECTED");
+    return {
+      expandedRoutes: focusedRoute ? [focusedRoute] : [],
+      collapsedRoutes: list.filter((route) => route.id !== focusedRoute?.id),
+    };
+  }, [autoFocusRecommended, list]);
+  const visibleOnMap = useMemo(
+    () => expandedRoutes.filter((route) => route.status !== "REJECTED"),
+    [expandedRoutes],
+  );
   const mapShelters = useMemo(() => {
     const selectedRoute =
       visibleOnMap.find((route) => route.status === "RECOMMENDED") ?? visibleOnMap[0];
@@ -133,6 +163,21 @@ export function RoutesView({
     return selectedShelter ? [selectedShelter] : [];
   }, [shelters, visibleOnMap]);
   const hasOnlyRejectedRoutes = list.length > 0 && list.every((r) => r.status === "REJECTED");
+  const routeDataTimestamp = oldestSuccessfulTimestamp([
+    {
+      label: "TMAP 보행자 경로",
+      timestamp: routeState.results.walk.timestamp,
+      status: routeState.results.walk.status,
+    },
+    {
+      label: "NAVER Directions 5",
+      timestamp: routeState.results.drive.timestamp,
+      status: routeState.results.drive.status,
+    },
+  ]);
+  const routeDataTimestampLabel = routeDataTimestamp
+    ? `${formatTimestamp(routeDataTimestamp)} (${relativeAge(routeDataTimestamp)})`
+    : "확실한 정보 없음";
 
   return (
     <div className="flex flex-col flex-1">
@@ -165,10 +210,31 @@ export function RoutesView({
         ) : hasOnlyRejectedRoutes ? (
           <>
             <NoSafeRouteCard mode={displayedMode} />
-            <h3 className="mt-1 text-[13px] font-extrabold text-[var(--text-muted)]">
-              제외된 후보 경로
-            </h3>
-            {list.map((r) => (
+            {autoFocusRecommended ? (
+              <CollapsedRoutes
+                routes={collapsedRoutes}
+                shelterById={shelterById}
+                riskLevel={riskLevel}
+              />
+            ) : (
+              <>
+                <h3 className="mt-1 text-[13px] font-extrabold text-[var(--text-muted)]">
+                  제외된 후보 경로
+                </h3>
+                {list.map((r) => (
+                  <RouteCard
+                    key={r.id}
+                    route={r}
+                    shelter={shelterById.get(r.shelterId)}
+                    riskLevel={riskLevel}
+                  />
+                ))}
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            {expandedRoutes.map((r) => (
               <RouteCard
                 key={r.id}
                 route={r}
@@ -176,22 +242,61 @@ export function RoutesView({
                 riskLevel={riskLevel}
               />
             ))}
+            {autoFocusRecommended ? (
+              <CollapsedRoutes
+                routes={collapsedRoutes}
+                shelterById={shelterById}
+                riskLevel={riskLevel}
+              />
+            ) : null}
           </>
-        ) : (
-          list.map((r) => (
-            <RouteCard
-              key={r.id}
-              route={r}
-              shelter={shelterById.get(r.shelterId)}
-              riskLevel={riskLevel}
-            />
-          ))
         )}
         <p className="text-[12px] text-[var(--text-subtle)] mt-1 tnum" aria-label="데이터 기준시각">
-          데이터 기준 {formatTimestamp(DATA_TIMESTAMP)}
+          데이터 기준 {routeDataTimestampLabel}
+        </p>
+        <p className="text-[12px] text-[var(--text-subtle)] tnum" aria-label="지하차도 데이터 범위">
+          지하차도 데이터: {routeState.underpassCoverage.label}{" "}
+          {routeState.underpassCoverage.recordCount}개 ·{" "}
+          {routeState.underpassCoverage.dataDate ?? "기준일 미상"} 기준
+          {routeState.underpassCoverage.status === "OUTSIDE_COVERAGE"
+            ? " · 현재 위치는 데이터 범위 밖"
+            : ""}
         </p>
       </div>
     </div>
+  );
+}
+
+function CollapsedRoutes({
+  routes,
+  shelterById,
+  riskLevel,
+}: {
+  routes: RouteResult[];
+  shelterById: Map<string, Shelter>;
+  riskLevel: RiskLevel;
+}) {
+  if (routes.length === 0) return null;
+
+  return (
+    <details
+      className="rounded-[12px] border bg-white p-3"
+      style={{ borderColor: "var(--border-soft)" }}
+    >
+      <summary className="cursor-pointer text-[13px] font-extrabold text-[var(--text-muted)]">
+        대안·제외 경로 {routes.length}개 보기
+      </summary>
+      <div className="mt-3 flex flex-col gap-3">
+        {routes.map((route) => (
+          <RouteCard
+            key={route.id}
+            route={route}
+            shelter={shelterById.get(route.shelterId)}
+            riskLevel={riskLevel}
+          />
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -211,8 +316,8 @@ function NoSafeRouteCard({ mode }: { mode: RouteMode }) {
       </span>
       <h2 className="mt-3 text-[17px] font-extrabold text-[#991b1b]">{modeLabel} 안전 경로 없음</h2>
       <p className="mt-2 text-[13px] leading-relaxed text-[#7f1d1d]">
-        현재 선택한 이동수단의 모든 후보 경로가 제외되었습니다. 경로 상에 위험 구역(침수/범람)
-        또는 <strong>실시간 교통 통제구간(돌발상황)</strong>이 포함되어 있습니다. 지자체 안내와 현장
+        현재 선택한 이동수단의 모든 후보 경로가 제외되었습니다. 경로 상에 위험 구역(침수/범람) 또는{" "}
+        <strong>실시간 교통 통제구간(돌발상황)</strong>이 포함되어 있습니다. 지자체 안내와 현장
         통제를 우선하고, 무리한 진입을 삼가세요.
       </p>
     </section>
