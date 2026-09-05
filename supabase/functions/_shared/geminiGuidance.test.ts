@@ -66,4 +66,12 @@ describe("Gemini situation guidance prompt", () => {
       "재난유형이나 확인된 위험이 없어도",
     );
   });
+
+  test("수치와 기준 시각을 클라이언트 검증 계약에 맞게 작성하도록 지시한다", () => {
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("facts에 실제로 적힌 수치만");
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("dataTimestamp를 안내 문장에 반복하지 마세요");
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("LIVE_DATA");
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("evidenceRefs");
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("ROUTE fact에 통과·포함이 명시되지 않은");
+  });
 });

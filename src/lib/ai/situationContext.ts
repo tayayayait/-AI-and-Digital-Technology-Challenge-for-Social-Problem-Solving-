@@ -45,6 +45,8 @@ export function buildSituationFacts({
   route,
   routeResult,
   shelter,
+  shelterDistanceMeters,
+  shelterDistanceKind,
   shelterResult,
   alternatives,
 }: {
@@ -55,6 +57,8 @@ export function buildSituationFacts({
   route?: RouteResult;
   routeResult?: ApiResult<RouteResult[]>;
   shelter?: Shelter;
+  shelterDistanceMeters?: number;
+  shelterDistanceKind?: "ROUTE" | "STRAIGHT_LINE";
   shelterResult?: ApiResult<Shelter[]>;
   alternatives: GeminiAlternativeShelter[];
 }): SafetyFact[] {
@@ -116,6 +120,12 @@ export function buildSituationFacts({
         shelter.status +
         ", " +
         (shelter.underground ? "지하 시설" : "지상 시설") +
+        (typeof shelterDistanceMeters === "number" && Number.isFinite(shelterDistanceMeters)
+          ? ", 현재 위치 기준 " +
+            (shelterDistanceKind === "ROUTE" ? "경로거리 " : "직선거리 ") +
+            Math.round(shelterDistanceMeters) +
+            "m"
+          : "") +
         ". 운영 여부는 현장 재확인 필요.",
       source: shelterResult?.source ?? "대피소 API",
       observedAt: shelterResult?.timestamp ?? null,

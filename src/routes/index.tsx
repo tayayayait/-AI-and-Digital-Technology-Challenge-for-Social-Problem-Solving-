@@ -62,11 +62,6 @@ const areHomeCctvBoundsSimilar = (a: HomeCctvBounds | null, b: HomeCctvBounds) =
   Math.abs(a.minY - b.minY) < HOME_CCTV_BOUNDS_EPSILON &&
   Math.abs(a.maxY - b.maxY) < HOME_CCTV_BOUNDS_EPSILON;
 
-const formatOverlapEvidence = (label: string, value?: number) => {
-  if (!value || value <= 0) return null;
-  return `${label} ${Math.round(value * 100)}%`;
-};
-
 const uniqueEvidence = (items: Array<string | null | undefined>) => [
   ...new Set(items.filter((item): item is string => Boolean(item))),
 ];
@@ -276,6 +271,10 @@ function Home() {
   ]);
   const recommendedShelter = recommended?.s;
   const guidanceRoute = homeRoute?.shelterId === recommendedShelter?.id ? homeRoute : undefined;
+  const recommendedDistanceMeters =
+    typeof recommended?.d === "number" && Number.isFinite(recommended.d)
+      ? Math.round(recommended.d)
+      : undefined;
   const alternativeShelters = useMemo<AlternativeShelterView[]>(
     () =>
       shelterOptions
@@ -312,20 +311,13 @@ function Home() {
     routeResult:
       guidanceRoute?.mode === "WALK" ? routeState.results.walk : routeState.results.drive,
     shelter: recommendedShelter,
+    shelterDistanceMeters: recommendedDistanceMeters,
+    shelterDistanceKind: guidanceRoute ? "ROUTE" : "STRAIGHT_LINE",
     shelterResult,
     alternatives: aiAlternatives,
   });
 
-  const aiRouteReasons = useMemo(
-    () =>
-      uniqueEvidence([
-        ...buildRouteEvidence(homeRoute),
-        ...breakdown.reasons,
-        formatOverlapEvidence("생활안전지도 침수흔적 중첩", breakdown.floodTraceOverlap),
-        formatOverlapEvidence("생활안전지도 하천범람 중첩", breakdown.riverFloodOverlap),
-      ]),
-    [breakdown.floodTraceOverlap, breakdown.reasons, breakdown.riverFloodOverlap, homeRoute],
-  );
+  const aiRouteReasons = useMemo(() => uniqueEvidence(buildRouteEvidence(homeRoute)), [homeRoute]);
 
   const aiInput = useMemo<GeminiRouteExplanationInput | null>(() => {
     if (!hasSelectedLocation || (!dataTimestamp && !guidanceRoute)) return null;
@@ -338,7 +330,7 @@ function Home() {
       recommendedRouteId: guidanceRoute?.id,
       recommendedShelterId: recommended?.s.id,
       shelterName: recommended?.s.name ?? "확인된 대피소 없음",
-      distanceMeters: recommended?.d,
+      distanceMeters: recommendedDistanceMeters,
       routeReasons: aiRouteReasons,
       dataTimestamp:
         !online && lastConfirmedAt
@@ -364,6 +356,7 @@ function Home() {
   }, [
     aiRouteReasons,
     recommended,
+    recommendedDistanceMeters,
     displayRiskLevel,
     guidanceRoute,
     breakdown,

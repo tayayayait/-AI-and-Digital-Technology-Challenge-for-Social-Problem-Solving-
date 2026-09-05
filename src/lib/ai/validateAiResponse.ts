@@ -69,11 +69,41 @@ const containsUnknownProperNoun = (text: string, allowedTerms: string[]) => {
   });
 };
 
-const CURRENT_MEASUREMENT_PATTERN = /\d+(?:\.\d+)?\s*(?:mm|cm|km|m|℃|점|%|분|시간당|단계)/i;
-const measurements = (text: string) =>
-  (text.match(new RegExp(CURRENT_MEASUREMENT_PATTERN.source, "gi")) ?? []).map((value) =>
-    value.replace(/\s+/g, "").toLowerCase(),
-  );
+const CURRENT_MEASUREMENT_PATTERN = /(\d+(?:\.\d+)?)\s*(mm|cm|km|m|℃|점|%|분|시간당|단계)/i;
+
+interface ParsedMeasurement {
+  value: number;
+  unit: string;
+  decimals: number;
+}
+
+const measurements = (text: string): ParsedMeasurement[] =>
+  [...text.matchAll(new RegExp(CURRENT_MEASUREMENT_PATTERN.source, "gi"))].flatMap((match) => {
+    const numberText = match[1];
+    const unit = match[2].toLowerCase();
+    const matchIndex = match.index ?? 0;
+    const prefix = text.slice(Math.max(0, matchIndex - 8), matchIndex);
+
+    // "05시 27분"의 27분은 이동 소요시간이 아니라 기준 시각이다.
+    if (unit === "분" && /\d{1,2}\s*시\s*$/.test(prefix)) return [];
+
+    return [
+      {
+        value: Number(numberText),
+        unit,
+        decimals: numberText.includes(".") ? numberText.split(".")[1].length : 0,
+      },
+    ];
+  });
+
+const isSupportedMeasurement = (candidate: ParsedMeasurement, sources: ParsedMeasurement[]) =>
+  sources.some((source) => {
+    if (source.unit !== candidate.unit) return false;
+    if (source.value === candidate.value) return true;
+    if (candidate.decimals >= source.decimals) return false;
+
+    return Number(source.value.toFixed(candidate.decimals)) === candidate.value;
+  });
 
 const collectGuidanceItems = (answer: z.infer<typeof aiAnswerSchema>) => [
   ...(answer.riskSummary ? [answer.riskSummary] : []),
@@ -92,7 +122,7 @@ const hasInvalidGuidanceSource = (item: AiGuidanceItem, knownFactIds: Set<string
     );
   }
 
-  return item.evidenceRefs.length > 0 || CURRENT_MEASUREMENT_PATTERN.test(item.text);
+  return item.evidenceRefs.length > 0 || measurements(item.text).length > 0;
 };
 
 export const validateAiResponse = ({
@@ -143,15 +173,13 @@ export const validateAiResponse = ({
     facts.length > 0 &&
     guidanceItems.some((item) => {
       if (item.sourceKind !== "LIVE_DATA") return false;
-      const sourceValues = new Set(
-        measurements(
-          facts
-            .filter((fact) => item.evidenceRefs.includes(fact.id))
-            .map((fact) => fact.text)
-            .join(" "),
-        ),
+      const sourceValues = measurements(
+        facts
+          .filter((fact) => item.evidenceRefs.includes(fact.id))
+          .map((fact) => fact.text)
+          .join(" "),
       );
-      return measurements(item.text).some((value) => !sourceValues.has(value));
+      return measurements(item.text).some((value) => !isSupportedMeasurement(value, sourceValues));
     })
   ) {
     console.warn("[AI Validation] Measurement was not present in cited facts.");

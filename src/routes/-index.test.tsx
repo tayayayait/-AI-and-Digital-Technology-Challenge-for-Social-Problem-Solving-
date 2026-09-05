@@ -377,17 +377,21 @@ describe("Home location gate", () => {
             kind: "ROUTE",
             source: "TMAP 보행 경로",
           }),
+          expect.objectContaining({
+            id: "assessment-0",
+            text: "재난문자 위험지역",
+          }),
+          expect.objectContaining({
+            id: "assessment-1",
+            text: "지하차도 통과 가능성",
+          }),
         ]),
-        routeReasons: expect.arrayContaining([
+        routeReasons: [
           "추천 도보 경로 TMAP 실시간 보행 경로",
           "안전점수 91점",
           "실제 교통통제 구간 회피",
           "실시간 보행 경로 안전점수 반영",
-          "재난문자 위험지역",
-          "지하차도 통과 가능성",
-          "생활안전지도 침수흔적 중첩 34%",
-          "생활안전지도 하천범람 중첩 12%",
-        ]),
+        ],
       }),
     );
     expect(screen.getByText(/데이터 기준 2026-06-14 13:00/)).toBeInTheDocument();

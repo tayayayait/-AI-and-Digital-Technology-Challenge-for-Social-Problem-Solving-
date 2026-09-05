@@ -162,7 +162,7 @@ export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakd
           : "하천범람 위험"
       : "",
     disasterMessages > 0 ? "재난문자 위험지역" : "",
-    underpass > 0 ? "지하차도·저지대 통과" : "",
+    underpass > 0 ? "현재 위치 주변 지하차도" : "",
     trafficControl > 0 ? (input.trafficControlTitle ?? "교통통제·돌발") : "",
     cctvFlood > 0 ? `CCTV AI 판독 ${input.cctvFloodEvidence?.depthGrade}` : "",
   ].filter(Boolean);

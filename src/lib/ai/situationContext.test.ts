@@ -37,4 +37,32 @@ describe("situation facts", () => {
     );
     expect(facts.every((fact) => fact.text.length <= 320)).toBe(true);
   });
+
+  test("추천 대피소의 직선거리를 Gemini가 인용할 수 있는 사실에 포함한다", () => {
+    const facts = buildSituationFacts({
+      assessment: {
+        total: 5,
+        missingDataCount: 0,
+        reasons: [],
+        dataSources: [],
+      } as unknown as Parameters<typeof buildSituationFacts>[0]["assessment"],
+      riskLevel: "SAFE",
+      timestamp: "2026-09-05T05:27:44.000Z",
+      online: true,
+      shelter: {
+        id: "s-01",
+        name: "삼구트리니엔(104동)",
+        address: "경상북도 구미시 옥계북로 33",
+        status: "CHECK_REQUIRED",
+        underground: false,
+      } as Parameters<typeof buildSituationFacts>[0]["shelter"],
+      shelterDistanceMeters: 155.84,
+      shelterDistanceKind: "STRAIGHT_LINE",
+      alternatives: [],
+    });
+
+    expect(facts.find((fact) => fact.id === "shelter-s-01")?.text).toContain(
+      "현재 위치 기준 직선거리 156m",
+    );
+  });
 });

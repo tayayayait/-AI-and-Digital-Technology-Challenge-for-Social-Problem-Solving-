@@ -187,7 +187,7 @@ describe("useRiskAssessment", () => {
     const { result } = renderHook(() => useRiskAssessment({ lat: 35.1631, lng: 129.1635 }));
 
     expect(result.current.underpass).toBe(5);
-    expect(result.current.reasons).toContain("지하차도·저지대 통과");
+    expect(result.current.reasons).toContain("현재 위치 주변 지하차도");
     expect(result.current.underpassCoverage.status).toBe("COVERED");
   });
 
