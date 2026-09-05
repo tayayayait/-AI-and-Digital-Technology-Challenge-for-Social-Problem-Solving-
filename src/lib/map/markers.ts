@@ -68,21 +68,6 @@ export function createCurrentLocationMarkerIcon(
   );
 }
 
-export function createSelectedLocationMarkerIcon(
-  maps: NaverMapsNamespace["maps"],
-  label: string,
-): NaverHtmlMarkerIcon {
-  return markerIcon(
-    maps,
-    `<span class="a11y-map-marker" role="img" aria-label="CCTV 조회 위치: ${escapeHtml(label)}" style="
-      display:flex;align-items:center;justify-content:center;width:34px;height:34px;
-      border-radius:999px;border:3px solid #fff;background:#0f172a;color:#fff;
-      box-shadow:0 2px 8px rgba(15,23,42,.28);font-size:15px;font-weight:900;
-    ">⌖</span>`,
-    34,
-  );
-}
-
 export function createShelterMarkerIcon(
   maps: NaverMapsNamespace["maps"],
   shelter: Shelter,
@@ -152,21 +137,5 @@ export function createTrafficEventMarkerIcon(
       padding:0 6px;letter-spacing:0;
     ">${escapeHtml(label)}</button>`,
     34,
-  );
-}
-
-export function createCctvMarkerIcon(
-  maps: NaverMapsNamespace["maps"],
-  cctvId: string,
-  name: string,
-): NaverHtmlMarkerIcon {
-  return markerIcon(
-    maps,
-    `<button class="a11y-map-marker" type="button" data-cctv-id="${escapeHtml(cctvId)}" aria-label="CCTV: ${escapeHtml(name)}" style="
-      display:flex;align-items:center;justify-content:center;width:28px;height:28px;
-      border-radius:6px;border:2px solid #fff;background:#2563eb;color:#fff;
-      box-shadow:0 1px 4px rgba(15,23,42,.24);
-    "><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></button>`,
-    28,
   );
 }

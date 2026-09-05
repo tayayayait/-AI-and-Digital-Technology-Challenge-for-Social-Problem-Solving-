@@ -41,6 +41,10 @@ export const groupSubscriptionsByGrid = <T extends MonitorSubscriptionBase>(rows
 
 interface MonitoredWeather {
   rainfallMmPerHour?: number;
+  hourlyForecast?: Array<{
+    forecastAt: string;
+    rainfallMmPerHour: number;
+  }>;
 }
 
 interface MonitoredSensor {
@@ -77,6 +81,14 @@ const scoreToLevel = (score: number): RiskLevel => {
   return "CRITICAL";
 };
 
+const RISK_RANK: Record<RiskLevel, number> = {
+  UNKNOWN: -1,
+  SAFE: 0,
+  WATCH: 1,
+  WARNING: 2,
+  CRITICAL: 3,
+};
+
 export const calculateMonitoredRisk = ({
   weather,
   sensors,
@@ -98,6 +110,46 @@ export const calculateMonitoredRisk = ({
   const weatherScore = Math.min(30, Math.round(30 * (rain / 30)));
   const waterScore = Math.max(0, ...(sensors ?? []).map(sensorScore));
   return scoreToLevel(Math.min(100, weatherScore + waterScore));
+};
+
+export interface MonitoredRiskState {
+  currentLevel: RiskLevel;
+  alertLevel: RiskLevel;
+  forecastAt?: string;
+}
+
+export const calculateMonitoredRiskState = ({
+  weather,
+  sensors,
+  failedSources,
+}: {
+  weather: MonitoredWeather | null;
+  sensors: MonitoredSensor[] | null;
+  failedSources: number;
+}): MonitoredRiskState => {
+  const currentLevel = calculateMonitoredRisk({ weather, sensors, failedSources });
+  const peakForecast = (weather?.hourlyForecast ?? []).reduce<{
+    level: RiskLevel;
+    forecastAt: string;
+  } | null>((peak, point) => {
+    const level = calculateMonitoredRisk({
+      weather: { rainfallMmPerHour: point.rainfallMmPerHour },
+      sensors,
+      failedSources,
+    });
+    return !peak || RISK_RANK[level] > RISK_RANK[peak.level]
+      ? { level, forecastAt: point.forecastAt }
+      : peak;
+  }, null);
+
+  if (peakForecast && RISK_RANK[peakForecast.level] > RISK_RANK[currentLevel]) {
+    return {
+      currentLevel,
+      alertLevel: peakForecast.level,
+      forecastAt: peakForecast.forecastAt,
+    };
+  }
+  return { currentLevel, alertLevel: currentLevel };
 };
 
 const KMA_GRID = {
@@ -146,5 +198,15 @@ export const getKmaNowcastBase = (now = new Date()) => {
   return {
     baseDate: `${kst.getUTCFullYear()}${pad(kst.getUTCMonth() + 1)}${pad(kst.getUTCDate())}`,
     baseTime: `${pad(kst.getUTCHours())}00`,
+  };
+};
+
+export const getKmaUltraForecastBase = (now = new Date()) => {
+  const kst = new Date(now.getTime() + 9 * 60 * 60 * 1_000);
+  if (kst.getUTCMinutes() < 45) kst.setUTCHours(kst.getUTCHours() - 1);
+  kst.setUTCMinutes(30, 0, 0);
+  return {
+    forecastBaseDate: `${kst.getUTCFullYear()}${pad(kst.getUTCMonth() + 1)}${pad(kst.getUTCDate())}`,
+    forecastBaseTime: `${pad(kst.getUTCHours())}30`,
   };
 };

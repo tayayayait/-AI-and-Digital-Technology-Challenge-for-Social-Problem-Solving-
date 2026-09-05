@@ -29,7 +29,15 @@ const failedWeatherResult = (error: unknown): ApiResult<WeatherSnapshot> => ({
 export const useWeather = ({ origin, now, client, enabled = true }: UseWeatherOptions) => {
   const request = buildKmaWeatherRequest({ origin, now });
   const query = useQuery({
-    queryKey: ["weather", request.nx, request.ny, request.baseDate, request.baseTime],
+    queryKey: [
+      "weather",
+      request.nx,
+      request.ny,
+      request.baseDate,
+      request.baseTime,
+      request.forecastBaseDate,
+      request.forecastBaseTime,
+    ],
     staleTime: API_CACHE_TTL_MS.WEATHER_CURRENT,
     enabled,
     queryFn: (): Promise<ApiResult<WeatherSnapshot>> =>

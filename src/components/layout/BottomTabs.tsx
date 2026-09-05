@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Building2, HelpCircle, RadioTower } from "lucide-react";
+import { Home, Building2, CloudRain, HelpCircle } from "lucide-react";
 
 const TABS = [
   { to: "/", label: "홈", icon: Home },
   { to: "/shelters", label: "대피소", icon: Building2 },
-  { to: "/ops/cctv", label: "현장", icon: RadioTower },
+  { to: "/forecast", label: "전망", icon: CloudRain },
   { to: "/help", label: "도움", icon: HelpCircle },
 ] as const;
 

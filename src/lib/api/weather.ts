@@ -11,6 +11,16 @@ const weatherAlertSchema = z.object({
   issuedAt: z.string().min(1),
 });
 
+const weatherForecastPointSchema = z.object({
+  forecastAt: z.string().min(1),
+  rainfallMmPerHour: z.number().nonnegative(),
+  temperatureCelsius: z.number().optional(),
+  humidityPercent: z.number().min(0).max(100).optional(),
+  precipitationProbabilityPercent: z.number().min(0).max(100).optional(),
+  precipitationAmount: z.string().optional(),
+  precipitationType: z.string().optional(),
+});
+
 export const weatherSnapshotSchema = z.object({
   observedAt: z.string().min(1),
   rainfallMmPerHour: z.number().nonnegative(),
@@ -21,6 +31,7 @@ export const weatherSnapshotSchema = z.object({
   precipitationType: z.string().optional(),
   waterLevelMeters: z.number().nonnegative().optional(),
   alerts: z.array(weatherAlertSchema),
+  hourlyForecast: z.array(weatherForecastPointSchema).max(6).default([]),
 });
 
 export const parseWeatherSnapshot = (data: unknown): WeatherSnapshot =>
@@ -34,6 +45,8 @@ export interface KmaGrid {
 export interface KmaWeatherRequest extends KmaGrid {
   baseDate: string;
   baseTime: string;
+  forecastBaseDate: string;
+  forecastBaseTime: string;
 }
 
 export type WeatherEdgeFetcher = (request: KmaWeatherRequest) => Promise<unknown>;
@@ -83,16 +96,30 @@ export const toKmaGrid = ({ lat, lng }: LatLng): KmaGrid => {
 
 const pad = (value: number, width = 2) => String(value).padStart(width, "0");
 
-const formatKmaBaseDate = (date: Date) =>
-  `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
+const KST_OFFSET_MS = 9 * 60 * 60 * 1_000;
+
+const toKstClock = (date: Date) => new Date(date.getTime() + KST_OFFSET_MS);
+
+const formatKmaBaseDate = (kstClock: Date) =>
+  `${kstClock.getUTCFullYear()}${pad(kstClock.getUTCMonth() + 1)}${pad(kstClock.getUTCDate())}`;
 
 export const getKmaNowcastBase = (now: Date = new Date()) => {
-  const base = new Date(now);
-  if (base.getMinutes() < 40) base.setHours(base.getHours() - 1);
-  base.setMinutes(0, 0, 0);
+  const base = toKstClock(now);
+  if (base.getUTCMinutes() < 40) base.setUTCHours(base.getUTCHours() - 1);
+  base.setUTCMinutes(0, 0, 0);
   return {
     baseDate: formatKmaBaseDate(base),
-    baseTime: `${pad(base.getHours())}00`,
+    baseTime: `${pad(base.getUTCHours())}00`,
+  };
+};
+
+export const getKmaUltraForecastBase = (now: Date = new Date()) => {
+  const base = toKstClock(now);
+  if (base.getUTCMinutes() < 45) base.setUTCHours(base.getUTCHours() - 1);
+  base.setUTCMinutes(30, 0, 0);
+  return {
+    forecastBaseDate: formatKmaBaseDate(base),
+    forecastBaseTime: `${pad(base.getUTCHours())}30`,
   };
 };
 
@@ -105,6 +132,7 @@ export const buildKmaWeatherRequest = ({
 }): KmaWeatherRequest => ({
   ...toKmaGrid(origin),
   ...getKmaNowcastBase(now),
+  ...getKmaUltraForecastBase(now),
 });
 
 const invokeWeatherEdge: WeatherEdgeFetcher = async (request) => {

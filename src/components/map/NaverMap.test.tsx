@@ -6,7 +6,6 @@ import { NaverMap } from "./NaverMap";
 import { resetNaverMapsSDKLoaderForTest } from "@/lib/map/naverMaps";
 import { createSafeMapFloodTraceWmsLayer } from "@/lib/map/wms";
 import type { LatLng, RouteResult, Shelter, TrafficEvent } from "@/lib/types";
-import type { CctvFeed } from "@/lib/api/cctvInfo";
 
 const center: LatLng = { lat: 37.4979, lng: 127.0276 };
 
@@ -46,32 +45,6 @@ const trafficEvent: TrafficEvent = {
   message: "테헤란로 추돌사고 처리 중",
   startedAt: "2026-06-15T12:20:00+09:00",
   source: "ITS eventInfo",
-};
-
-const nearCctv: CctvFeed = {
-  id: "cctv-near",
-  roadSectionId: "road-near",
-  fileCreatedAt: "2026-06-15T09:00:00+09:00",
-  cctvType: "4",
-  streamUrl: "https://example.com/near.m3u8",
-  resolution: "1280x720",
-  position: { lat: 37.498, lng: 127.028 },
-  format: "HLS",
-  name: "Near CCTV",
-  source: "ITS cctvInfo",
-};
-
-const farCctv: CctvFeed = {
-  id: "cctv-far",
-  roadSectionId: "road-far",
-  fileCreatedAt: "2026-06-15T09:00:00+09:00",
-  cctvType: "4",
-  streamUrl: "https://example.com/far.m3u8",
-  resolution: "1280x720",
-  position: { lat: 37.55, lng: 127.1 },
-  format: "HLS",
-  name: "Far CCTV",
-  source: "ITS cctvInfo",
 };
 
 type MockMapInstance = {
@@ -186,31 +159,15 @@ describe("NaverMap", () => {
     act(() => script.dispatchEvent(new Event("error")));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "네이버 지도를 불러오지 못했습니다. 대체 지도로 위치를 선택하세요.",
+      "네이버 지도를 불러오지 못했습니다. 잠시 후 다시 시도하세요.",
     );
     expect(screen.getByRole("alert")).not.toHaveTextContent("Naver Maps SDK load failed");
   });
 
-  test("keeps a selectable fallback map when the SDK is unavailable", async () => {
-    const user = userEvent.setup();
-    const onLocationSelect = vi.fn();
+  test("shows a static fallback when the SDK is unavailable", () => {
+    render(<NaverMap center={center} clientId="" />);
 
-    render(
-      <NaverMap
-        center={center}
-        clientId=""
-        selectedLocation={center}
-        selectedLocationLabel="홈 설정 위치"
-        onLocationSelect={onLocationSelect}
-      />,
-    );
-
-    const fallbackMap = screen.getByRole("button", {
-      name: "대체 지도에서 CCTV 조회 위치 선택",
-    });
-    await user.click(fallbackMap);
-
-    expect(onLocationSelect).toHaveBeenCalledWith(center, "MAP");
+    expect(screen.getByLabelText("지도 대체 화면")).toHaveTextContent("지도를 표시할 수 없습니다.");
     expect(screen.getByRole("alert")).toHaveTextContent("VITE_NAVER_MAPS_CLIENT_ID");
   });
 
@@ -438,44 +395,6 @@ describe("NaverMap", () => {
     expect(onCurrentLocationClick).toHaveBeenCalledTimes(1);
   });
 
-  test("calls the location selection handler with a clicked map coordinate", async () => {
-    const { maps, listeners } = createNaverMapsMock();
-    window.naver = { maps };
-    const onLocationSelect = vi.fn();
-
-    render(<NaverMap center={center} clientId="client-id" onLocationSelect={onLocationSelect} />);
-
-    await waitFor(() =>
-      expect(listeners.some(({ eventName }) => eventName === "click")).toBe(true),
-    );
-
-    await act(async () => {
-      listeners
-        .find(({ eventName }) => eventName === "click")
-        ?.listener({ coord: { lat: () => 37.503, lng: () => 127.032 } });
-    });
-
-    expect(onLocationSelect).toHaveBeenCalledWith({ lat: 37.503, lng: 127.032 }, "MAP");
-  });
-
-  test("calls the location selection handler with the map center after dragging", async () => {
-    const { maps, listeners } = createNaverMapsMock();
-    window.naver = { maps };
-    const onCenterChanged = vi.fn();
-
-    render(<NaverMap center={center} clientId="client-id" onCenterChanged={onCenterChanged} />);
-
-    await waitFor(() =>
-      expect(listeners.some(({ eventName }) => eventName === "dragend")).toBe(true),
-    );
-
-    await act(async () => {
-      listeners.find(({ eventName }) => eventName === "dragend")?.listener();
-    });
-
-    expect(onCenterChanged).toHaveBeenCalledWith({ lat: 37.501, lng: 127.031 });
-  });
-
   test("debounces map bounds changes from idle events", async () => {
     const { maps, listeners } = createNaverMapsMock();
     window.naver = { maps };
@@ -511,48 +430,6 @@ describe("NaverMap", () => {
       minY: 37.49,
       maxY: 37.51,
     });
-  });
-
-  test("opens CCTV detail only after the camera marker is clicked", async () => {
-    const user = userEvent.setup();
-    const { maps } = createNaverMapsMock();
-    window.naver = { maps };
-
-    render(<NaverMap center={center} clientId="client-id" cctvs={[farCctv, nearCctv]} />);
-
-    await waitFor(() => expect(maps.Marker).toHaveBeenCalled());
-    expect(screen.queryByRole("dialog", { name: /CCTV 상세/ })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "CCTV: Near CCTV" }));
-
-    const dialog = screen.getByRole("dialog", { name: /Near CCTV/ });
-
-    expect(dialog).toHaveTextContent("Near CCTV");
-    expect(dialog).not.toHaveTextContent("Far CCTV");
-  });
-
-  test("does not recreate every CCTV marker when one marker is selected", async () => {
-    const user = userEvent.setup();
-    const { maps } = createNaverMapsMock();
-    window.naver = { maps };
-    const markerConstructorSpy = vi.spyOn(maps, "Marker");
-
-    render(<NaverMap center={center} clientId="client-id" cctvs={[farCctv, nearCctv]} />);
-
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "CCTV: Near CCTV" })).toBeInTheDocument(),
-    );
-    const initialMarkerCount = markerConstructorSpy.mock.calls.length;
-
-    await user.click(screen.getByRole("button", { name: "CCTV: Near CCTV" }));
-    expect(screen.getByRole("dialog", { name: /Near CCTV/ })).toBeInTheDocument();
-
-    expect(markerConstructorSpy.mock.calls).toHaveLength(initialMarkerCount);
-    const selectedMarker = markerConstructorSpy.mock.results.find(
-      (result) =>
-        (result.value as { options?: { title?: string } }).options?.title === nearCctv.name,
-    )?.value as { setZIndex: ReturnType<typeof vi.fn> } | undefined;
-    expect(selectedMarker?.setZIndex).toHaveBeenCalledWith(100);
   });
 
   test("creates a SafeMap WMS ground overlay when a layer is configured", async () => {

@@ -14,8 +14,6 @@ $Functions = @(
   "sensors",
   "safemap-feature-info",
   "traffic-events",
-  "cctv-info",
-  "cctv-analyze",
   "push-subscribe",
   "push-notify",
   "risk-monitor"

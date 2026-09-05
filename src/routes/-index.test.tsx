@@ -15,13 +15,6 @@ const useAiAdviceMock = vi.hoisted(() =>
     isLoading: false,
   })),
 );
-const useCctvFeedsMock = vi.hoisted(() =>
-  vi.fn((_input: unknown) => ({
-    cameras: [],
-    result: { data: [], status: "FALLBACK" },
-    isLoading: false,
-  })),
-);
 const useRoutesMock = vi.hoisted(() => vi.fn());
 const useSheltersMock = vi.hoisted(() => vi.fn());
 const useTrafficEventsMock = vi.hoisted(() => vi.fn((_input: unknown) => ({ events: [] })));
@@ -100,10 +93,6 @@ vi.mock("@/hooks/useAiAdvice", () => ({
   useAiAdvice: (input: unknown) => useAiAdviceMock(input),
 }));
 
-vi.mock("@/hooks/useCctvFeeds", () => ({
-  useCctvFeeds: (input: unknown) => useCctvFeedsMock(input),
-}));
-
 vi.mock("@/hooks/useRoutes", () => ({
   useRoutes: (input: unknown) => useRoutesMock(input),
 }));
@@ -151,7 +140,6 @@ beforeEach(() => {
   geocodeAddressMock.mockReset();
   navigateMock.mockClear();
   useAiAdviceMock.mockClear();
-  useCctvFeedsMock.mockClear();
   useRoutesMock.mockReset();
   useRoutesMock.mockReturnValue({
     routes: [actualRoute],
@@ -429,22 +417,12 @@ describe("Home location gate", () => {
     }
   });
 
-  test("keeps CCTV disabled while ignoring tiny map bounds changes", async () => {
+  test("ignores tiny map bounds changes", async () => {
     useScenario.setState({ locationStatus: "GRANTED" });
 
     render(<Home />);
 
     await screen.findByTestId("home-map");
-    expect(screen.queryByRole("button", { name: "CCTV 켜기/끄기" })).not.toBeInTheDocument();
-    expect(clientMapMock.mock.lastCall?.[0].cctvs).toEqual([]);
-    expect(useCctvFeedsMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        center: { lat: 37.4979, lng: 127.0276 },
-        limit: 120,
-        enabled: false,
-      }),
-    );
-
     const firstMapProps = clientMapMock.mock.lastCall?.[0] as {
       onBoundsChanged: (bounds: { minX: number; maxX: number; minY: number; maxY: number }) => void;
     };
@@ -456,14 +434,7 @@ describe("Home location gate", () => {
     });
 
     await screen.findByTestId("home-map");
-    expect(useCctvFeedsMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        bounds: { minX: 127.02, maxX: 127.05, minY: 37.49, maxY: 37.51 },
-        limit: 120,
-        enabled: false,
-      }),
-    );
-    const callsAfterFirstBounds = useCctvFeedsMock.mock.calls.length;
+    const callsAfterFirstBounds = useSheltersMock.mock.calls.length;
 
     const secondMapProps = clientMapMock.mock.lastCall?.[0] as {
       onBoundsChanged: (bounds: { minX: number; maxX: number; minY: number; maxY: number }) => void;
@@ -475,7 +446,7 @@ describe("Home location gate", () => {
       maxY: 37.5101,
     });
 
-    expect(useCctvFeedsMock).toHaveBeenCalledTimes(callsAfterFirstBounds);
+    expect(useSheltersMock).toHaveBeenCalledTimes(callsAfterFirstBounds);
   });
 
   test("reloads shelters with current map bounds when map moves", async () => {

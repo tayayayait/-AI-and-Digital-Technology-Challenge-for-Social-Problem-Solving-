@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { oldestSuccessfulTimestamp } from "@/lib/api/dataTimestamp";
 import { queryNetworkSignal } from "@/lib/offline/networkSignal";
-import { useCctvAnalysisStore } from "@/store/cctvAnalysis";
 import { useRiskAssessment } from "./useRiskAssessment";
 
 const mocks = vi.hoisted(() => ({
@@ -32,7 +31,19 @@ vi.mock("./useWeather", () => ({
     isFetching: mocks.weatherFetching,
     isFetchedAfterMount: mocks.weatherFetchedAfterMount,
     result: {
-      data: { rainfallMmPerHour: 0, alerts: [] },
+      data: {
+        observedAt: "20260831T1700",
+        rainfallMmPerHour: 0,
+        alerts: [],
+        hourlyForecast: [
+          {
+            forecastAt: "2026-08-31T18:00:00+09:00",
+            rainfallMmPerHour: 30,
+            precipitationProbabilityPercent: 80,
+            precipitationType: "rain",
+          },
+        ],
+      },
       status: "OK",
       timestamp: "2026-08-31T08:10:00.000Z",
       source: "kma-weather",
@@ -115,7 +126,6 @@ describe("useRiskAssessment", () => {
     mocks.weatherFetchedAfterMount = true;
     mocks.setRiskAssessment.mockClear();
     queryNetworkSignal.reset();
-    useCctvAnalysisStore.getState().reset();
   });
 
   test("returns the actual timestamps and statuses used by the assessment", () => {
@@ -123,7 +133,7 @@ describe("useRiskAssessment", () => {
 
     expect(result.current.dataSources).toEqual([
       {
-        label: "기상청 단기예보",
+        label: "기상청 초단기예보",
         timestamp: "2026-08-31T08:10:00.000Z",
         status: "OK",
       },
@@ -191,25 +201,18 @@ describe("useRiskAssessment", () => {
     expect(result.current.underpassCoverage.status).toBe("COVERED");
   });
 
-  test("2km 이내의 유효한 CCTV 판독을 독립 근거로 위험 계산에 전달한다", () => {
-    useCctvAnalysisStore.getState().record({
-      cameraId: "cctv-nearby",
-      cameraName: "해운대로 CCTV",
-      position: { lat: 35.1632, lng: 129.1636 },
-      flooded: true,
-      depthGrade: "DEEP",
-      passable: false,
-      confidence: 0.86,
-      observation: "차로에 깊은 침수가 보입니다.",
-      frameDataUrl: "data:image/jpeg;base64,YWJj",
-      analyzedAt: "2099-08-31T08:00:00.000Z",
-      expiresAt: "2099-08-31T08:10:00.000Z",
-    });
-
+  test("현재 위험과 분리된 시간대별 예상 위험을 반환한다", () => {
     const { result } = renderHook(() => useRiskAssessment({ lat: 35.1631, lng: 129.1635 }));
 
-    expect(result.current.cctvFlood).toBe(10);
-    expect(result.current.reasons).toContain("CCTV AI 판독 DEEP");
-    expect(result.current.total).toBe(20);
+    expect(result.current.total).toBe(10);
+    expect(result.current.level).toBe("SAFE");
+    expect(result.current.riskOutlook).toEqual([
+      expect.objectContaining({
+        forecastAt: "2026-08-31T18:00:00+09:00",
+        riskScore: 40,
+        riskLevel: "WATCH",
+      }),
+    ]);
+    expect(result.current).not.toHaveProperty("cctvEvidence");
   });
 });

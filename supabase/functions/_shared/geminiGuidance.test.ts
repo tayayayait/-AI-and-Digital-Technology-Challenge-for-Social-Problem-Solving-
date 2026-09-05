@@ -74,4 +74,9 @@ describe("Gemini situation guidance prompt", () => {
     expect(GEMINI_GUIDANCE_SYSTEM).toContain("evidenceRefs");
     expect(GEMINI_GUIDANCE_SYSTEM).toContain("ROUTE fact에 통과·포함이 명시되지 않은");
   });
+
+  test("초단기예보를 현재 관측이나 확정된 침수로 단정하지 않도록 지시한다", () => {
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("예상으로 표시된 WEATHER fact");
+    expect(GEMINI_GUIDANCE_SYSTEM).toContain("현재 관측이나 확정된 침수 사실로 바꾸지 마세요");
+  });
 });

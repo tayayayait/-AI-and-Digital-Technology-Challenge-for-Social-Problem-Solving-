@@ -15,7 +15,6 @@ const bounds = createBoundsFromCenter(center, 500);
 
 const baseSignals = {
   weather: { rainfallMmPerHour: 0 },
-  forecast: { rainfallMmPerHour: 0 },
   disasterMessages: [],
   sensors: [],
   trafficEvents: [],

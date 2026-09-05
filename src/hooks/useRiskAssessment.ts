@@ -1,13 +1,12 @@
 import { useEffect, useMemo } from "react";
 
 import type { SourceTimestamp } from "@/lib/api/dataTimestamp";
-import { selectRelevantCctvEvidence } from "@/lib/cctv/cctvAnalysis";
 import { queryNetworkSignal } from "@/lib/offline/networkSignal";
 import { calculateRiskScore } from "@/lib/risk/calculateRiskScore";
+import { buildRiskOutlook } from "@/lib/risk/forecastRisk";
 import { getUnderpassCoverage, hasUnderpassNearby, UNDERPASSES } from "@/lib/risk/underpassRisk";
 import { hasBlockingEventNearby, trafficEventReason } from "@/lib/risk/trafficEventRisk";
 import type { LatLng, RiskCalculationInput } from "@/lib/types";
-import { useCctvAnalysisStore } from "@/store/cctvAnalysis";
 import { useScenario } from "@/store/scenario";
 import { useDisasterMessages } from "./useDisasterMessages";
 import { useReverseGeocode } from "./useReverseGeocode";
@@ -37,11 +36,6 @@ export function useRiskAssessment(origin: LatLng) {
   const { floodTraceOverlap, riverFloodOverlap, safeMapEvidence } = useWmsOverlap(origin);
   const { feeds: sensors } = useSensorFeeds(origin);
   const { events: trafficEvents, result: trafficResult } = useTrafficEvents(origin);
-  const cctvAnalyses = useCctvAnalysisStore((state) => state.analyses);
-  const cctvEvidence = useMemo(
-    () => selectRelevantCctvEvidence(Object.values(cctvAnalyses), origin),
-    [cctvAnalyses, origin],
-  );
   const underpassCoverage = useMemo(() => getUnderpassCoverage(origin), [origin]);
   const hasUnderpass = useMemo(
     () => underpassCoverage.status === "COVERED" && hasUnderpassNearby(origin, UNDERPASSES),
@@ -65,7 +59,6 @@ export function useRiskAssessment(origin: LatLng) {
 
   const input: RiskCalculationInput = {
     weather: weatherResult.data,
-    forecast: weatherResult.data,
     floodTrace: floodTraceOverlap > 0,
     floodTraceOverlap,
     riverFlood: riverFloodOverlap > 0,
@@ -76,12 +69,6 @@ export function useRiskAssessment(origin: LatLng) {
     trafficControlTitle: blockingTrafficEvent
       ? trafficEventReason(blockingTrafficEvent)
       : undefined,
-    cctvFloodEvidence: cctvEvidence
-      ? {
-          depthGrade: cctvEvidence.depthGrade,
-          confidence: cctvEvidence.confidence,
-        }
-      : undefined,
     floodWarningLevel: warnings.floodLevel,
     floodWarningTitle: floodWarning ? `${floodWarning.phenomenon}${floodWarning.grade}` : undefined,
     sensors,
@@ -89,9 +76,13 @@ export function useRiskAssessment(origin: LatLng) {
   };
 
   const breakdown = calculateRiskScore(input);
+  const riskOutlook = buildRiskOutlook({
+    forecast: weatherResult.data?.hourlyForecast ?? [],
+    baseInput: input,
+  });
   const dataSources = [
     {
-      label: "기상청 단기예보",
+      label: "기상청 초단기예보",
       timestamp: weatherResult.timestamp,
       status: weatherResult.status,
     },
@@ -139,7 +130,7 @@ export function useRiskAssessment(origin: LatLng) {
     underpassCoverage,
     trafficEvents,
     trafficEventStatus: trafficResult.status,
-    cctvEvidence,
+    riskOutlook,
     dataSources,
     isCurrentDataConfirmed,
   };

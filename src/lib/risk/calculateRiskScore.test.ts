@@ -5,7 +5,6 @@ import type { RiskCalculationInput } from "@/lib/types";
 describe("calculateRiskScore", () => {
   const baseInput = {
     weather: { rainfallMmPerHour: 0 },
-    forecast: { rainfallMmPerHour: 0 },
     floodTrace: false,
     floodTraceOverlap: 0,
     riverFlood: false,
@@ -115,7 +114,6 @@ describe("calculateRiskScore", () => {
     const result = calculateRiskScore({
       ...baseInput,
       weather: null,
-      forecast: null,
       sensors: [
         {
           id: "hrfco-waterlevel-1018683",
@@ -160,40 +158,14 @@ describe("calculateRiskScore", () => {
     expect(result.disasterMessages).toBe(0);
   });
 
-  test.each([
-    ["NONE", 0],
-    ["SHALLOW", 5],
-    ["DEEP", 10],
-    ["IMPASSABLE", 15],
-  ] as const)("adds %s CCTV evidence as %i points", (depthGrade, expected) => {
-    const result = calculateRiskScore({
-      ...baseInput,
-      cctvFloodEvidence: { depthGrade, confidence: 0.9 },
-    });
-
-    expect(result.cctvFlood).toBe(expected);
-    expect(result.total).toBe(expected);
-    expect(result.level).toBe("SAFE");
-  });
-
-  test.each([
-    [0.69, 0],
-    [0.7, 15],
-    [0.71, 15],
-  ])("applies the CCTV confidence boundary at %s", (confidence, expected) => {
-    expect(
-      calculateRiskScore({
-        ...baseInput,
-        cctvFloodEvidence: { depthGrade: "IMPASSABLE", confidence },
-      }).cctvFlood,
-    ).toBe(expected);
+  test("does not expose the retired CCTV score in the risk breakdown", () => {
+    expect(calculateRiskScore(baseInput)).not.toHaveProperty("cctvFlood");
   });
 });
 
 describe("기상특보 반영", () => {
   const base: RiskCalculationInput = {
     weather: { rainfallMmPerHour: 0, alerts: [] },
-    forecast: { rainfallMmPerHour: 0, alerts: [] },
     floodTrace: false,
     riverFlood: false,
     disasterMessages: [],
@@ -230,6 +202,6 @@ describe("기상특보 반영", () => {
 
   test("특보명이 없으면 기존 문구로 되돌아간다", () => {
     const result = calculateRiskScore({ ...base, floodWarningLevel: "WARNING" });
-    expect(result.reasons).toContain("강우·예보 위험");
+    expect(result.reasons).toContain("강우·기상특보 위험");
   });
 });

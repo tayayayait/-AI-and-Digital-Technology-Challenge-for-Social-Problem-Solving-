@@ -17,10 +17,7 @@ import { useRiskAssessment } from "@/hooks/useRiskAssessment";
 import { useAiAdvice } from "@/hooks/useAiAdvice";
 import { useRoutes } from "@/hooks/useRoutes";
 import { useTrafficEvents } from "@/hooks/useTrafficEvents";
-import { useCctvFeeds } from "@/hooks/useCctvFeeds";
-import { CCTV_ENABLED } from "@/lib/cctv/config";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
-import { Camera } from "lucide-react";
 import type { GeminiRouteExplanationInput } from "@/lib/api/gemini";
 import { buildSituationFacts, getDisasterTypes } from "@/lib/ai/situationContext";
 import type { RouteMode, RouteResult, Shelter } from "@/lib/types";
@@ -50,17 +47,16 @@ const HOME_ROUTE_MODE_LABEL: Record<RouteMode, string> = {
   DRIVE: "차량",
 };
 
-type HomeCctvBounds = { minX: number; maxX: number; minY: number; maxY: number };
+type HomeMapBounds = { minX: number; maxX: number; minY: number; maxY: number };
 
-const HOME_CCTV_LIMIT = 120;
-const HOME_CCTV_BOUNDS_EPSILON = 0.0005;
+const HOME_MAP_BOUNDS_EPSILON = 0.0005;
 
-const areHomeCctvBoundsSimilar = (a: HomeCctvBounds | null, b: HomeCctvBounds) =>
+const areHomeMapBoundsSimilar = (a: HomeMapBounds | null, b: HomeMapBounds) =>
   !!a &&
-  Math.abs(a.minX - b.minX) < HOME_CCTV_BOUNDS_EPSILON &&
-  Math.abs(a.maxX - b.maxX) < HOME_CCTV_BOUNDS_EPSILON &&
-  Math.abs(a.minY - b.minY) < HOME_CCTV_BOUNDS_EPSILON &&
-  Math.abs(a.maxY - b.maxY) < HOME_CCTV_BOUNDS_EPSILON;
+  Math.abs(a.minX - b.minX) < HOME_MAP_BOUNDS_EPSILON &&
+  Math.abs(a.maxX - b.maxX) < HOME_MAP_BOUNDS_EPSILON &&
+  Math.abs(a.minY - b.minY) < HOME_MAP_BOUNDS_EPSILON &&
+  Math.abs(a.maxY - b.maxY) < HOME_MAP_BOUNDS_EPSILON;
 
 const uniqueEvidence = (items: Array<string | null | undefined>) => [
   ...new Set(items.filter((item): item is string => Boolean(item))),
@@ -119,8 +115,7 @@ function Home() {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [selectedShelterId, setSelectedShelterId] = useState<string | null>(null);
   const [selectedShelterOverride, setSelectedShelterOverride] = useState<Shelter | null>(null);
-  const [showCctv, setShowCctv] = useState(CCTV_ENABLED);
-  const [mapBounds, setMapBounds] = useState<HomeCctvBounds | null>(null);
+  const [mapBounds, setMapBounds] = useState<HomeMapBounds | null>(null);
   const wmsLayers = useWmsLayers();
   const hasSelectedLocation = locationStatus === "GRANTED";
   const isEmergency = useEmergencyMode(riskLevel);
@@ -129,18 +124,11 @@ function Home() {
   const breakdown = useRiskAssessment(origin);
   const currentDataTimestamp = oldestSuccessfulTimestamp(breakdown.dataSources);
   const dataTimestamp = currentDataTimestamp ?? (!online ? lastConfirmedAt : null);
-  const updateMapBounds = useCallback((nextBounds: HomeCctvBounds) => {
+  const updateMapBounds = useCallback((nextBounds: HomeMapBounds) => {
     setMapBounds((currentBounds) =>
-      areHomeCctvBoundsSimilar(currentBounds, nextBounds) ? currentBounds : nextBounds,
+      areHomeMapBoundsSimilar(currentBounds, nextBounds) ? currentBounds : nextBounds,
     );
   }, []);
-
-  const { cameras: cctvCameras } = useCctvFeeds({
-    center: origin,
-    bounds: mapBounds,
-    limit: HOME_CCTV_LIMIT,
-    enabled: CCTV_ENABLED && showCctv && hasSelectedLocation,
-  });
 
   useEffect(() => {
     setHydrated(true);
@@ -511,27 +499,9 @@ function Home() {
             showCurrentLocationButton
             onCurrentLocationClick={requestLocation}
             isCurrentLocationLoading={isRequestingLocation}
-            cctvs={CCTV_ENABLED && showCctv ? cctvCameras : []}
             trafficEvents={trafficEvents}
             onBoundsChanged={updateMapBounds}
           />
-          {CCTV_ENABLED && (
-            <button
-              type="button"
-              onClick={() => setShowCctv(!showCctv)}
-              className={`absolute left-3 top-3 inline-flex h-10 items-center gap-1.5 rounded-[10px] border px-3 text-[13px] font-extrabold shadow-sm z-[1000] transition-colors ${
-                showCctv
-                  ? "border-[var(--primary)] bg-[var(--primary)] text-white"
-                  : "border-[var(--border-soft)] bg-white/95 text-[var(--text)]"
-              }`}
-              aria-pressed={showCctv}
-              aria-label="CCTV 켜기/끄기"
-            >
-              <Camera size={16} aria-hidden />
-              CCTV {showCctv ? "끄기" : "켜기"}
-            </button>
-          )}
-
           <WmsLegend />
         </div>
       )}

@@ -142,16 +142,8 @@ export interface WeatherNow {
   alerts?: Array<{ level: "WATCH" | "WARNING" | "CRITICAL" }>;
 }
 
-export interface WeatherForecast {
-  rainfallMmPerHour?: number;
-  precipitationProbabilityPercent?: number;
-  precipitationAmount?: string;
-  alerts?: Array<{ level: "WATCH" | "WARNING" | "CRITICAL" }>;
-}
-
 export interface RiskCalculationInput {
   weather: WeatherNow | null;
-  forecast: WeatherForecast | null;
   floodTrace: boolean;
   floodTraceOverlap?: number;
   riverFlood: boolean;
@@ -164,11 +156,6 @@ export interface RiskCalculationInput {
   }>;
   hasUnderpass: boolean;
   trafficControl: boolean;
-  /** 신뢰도 0.7 이상인 CCTV 멀티모달 판독 근거. */
-  cctvFloodEvidence?: {
-    depthGrade: "NONE" | "SHALLOW" | "DEEP" | "IMPASSABLE";
-    confidence: number;
-  };
   /** 화면 근거에 표시할 실제 통제 도로·상황명. */
   trafficControlTitle?: string;
   /**
@@ -203,7 +190,6 @@ export interface RiskScoreBreakdown {
   disasterMessages: number;
   underpass: number;
   trafficControl: number;
-  cctvFlood: number;
   total: number;
   level: RiskLevel;
   reasons: string[];

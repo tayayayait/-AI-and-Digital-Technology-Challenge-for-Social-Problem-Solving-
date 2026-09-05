@@ -1,21 +1,25 @@
 import { handleCorsPreflight, jsonOk, withJsonDuration } from "../_shared/cors.ts";
 import { assertAllowedMethod, parseJsonBody } from "../_shared/validation.ts";
 import { edgeError, fetchJson, requireEnv } from "../_shared/upstream.ts";
-import { normalizeKmaWeather, toKmaForecastBase } from "../_shared/kma.ts";
+import { normalizeKmaWeather } from "../_shared/kma.ts";
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
 const parseGridRequest = (value: unknown) => {
   if (!isRecord(value)) throw new Error("Invalid request body");
-  const { nx, ny, baseDate, baseTime } = value;
+  const { nx, ny, baseDate, baseTime, forecastBaseDate, forecastBaseTime } = value;
   if (typeof nx !== "number" || !Number.isInteger(nx) || nx < 1) throw new Error("Invalid nx");
   if (typeof ny !== "number" || !Number.isInteger(ny) || ny < 1) throw new Error("Invalid ny");
   if (typeof baseDate !== "string" || !/^\d{8}$/.test(baseDate))
     throw new Error("Invalid baseDate");
   if (typeof baseTime !== "string" || !/^\d{4}$/.test(baseTime))
     throw new Error("Invalid baseTime");
-  return { nx, ny, baseDate, baseTime };
+  if (typeof forecastBaseDate !== "string" || !/^\d{8}$/.test(forecastBaseDate))
+    throw new Error("Invalid forecastBaseDate");
+  if (typeof forecastBaseTime !== "string" || !/^\d{4}$/.test(forecastBaseTime))
+    throw new Error("Invalid forecastBaseTime");
+  return { nx, ny, baseDate, baseTime, forecastBaseDate, forecastBaseTime };
 };
 
 const extractItems = (upstream: unknown) => {
@@ -48,7 +52,7 @@ const buildKmaUrl = ({
   nx,
   ny,
 }: {
-  endpoint: "getUltraSrtNcst" | "getVilageFcst";
+  endpoint: "getUltraSrtNcst" | "getUltraSrtFcst";
   serviceKey: string;
   baseDate: string;
   baseTime: string;
@@ -74,10 +78,11 @@ Deno.serve(
 
     try {
       assertAllowedMethod(request.method, ["POST"]);
-      const { nx, ny, baseDate, baseTime } = parseGridRequest(await parseJsonBody(request));
+      const { nx, ny, baseDate, baseTime, forecastBaseDate, forecastBaseTime } = parseGridRequest(
+        await parseJsonBody(request),
+      );
       const serviceKey = requireEnv("KMA_SERVICE_KEY");
 
-      const forecastBase = toKmaForecastBase(baseDate, baseTime);
       const [nowcast, forecast] = await Promise.all([
         fetchJson(
           buildKmaUrl({
@@ -91,10 +96,10 @@ Deno.serve(
         ),
         fetchJson(
           buildKmaUrl({
-            endpoint: "getVilageFcst",
+            endpoint: "getUltraSrtFcst",
             serviceKey,
-            baseDate: forecastBase.baseDate,
-            baseTime: forecastBase.baseTime,
+            baseDate: forecastBaseDate,
+            baseTime: forecastBaseTime,
             nx,
             ny,
           }),

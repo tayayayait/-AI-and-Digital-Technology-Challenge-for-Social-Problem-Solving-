@@ -15,7 +15,7 @@ describe("offline query persistence", () => {
     expect(shouldPersistOfflineQuery({ queryKey: ["routes"] })).toBe(false);
     expect(shouldPersistOfflineQuery({ queryKey: ["ai-advice"] })).toBe(true);
     expect(shouldPersistOfflineQuery({ queryKey: ["operator-access"] })).toBe(false);
-    expect(shouldPersistOfflineQuery({ queryKey: ["cctv-feeds"] })).toBe(false);
+    expect(shouldPersistOfflineQuery({ queryKey: ["unrelated-query"] })).toBe(false);
   });
 
   it("rounds a user location to administrative-neighborhood precision", () => {

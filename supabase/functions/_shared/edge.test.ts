@@ -110,22 +110,15 @@ describe("edge deployment manifest", () => {
     expect(deployScript).toMatch(/"traffic-events"/);
   });
 
-  test("includes the ITS CCTV proxy used by the operator console", () => {
+  test("omits retired CCTV functions from deployment", () => {
     const config = readFileSync("supabase/config.toml", "utf8");
     const deployScript = readFileSync("scripts/deploy-supabase-all.ps1", "utf8");
 
-    expect(config).toContain("[functions.cctv-info]");
-    expect(config).toContain('entrypoint = "./functions/cctv-info/index.ts"');
-    expect(deployScript).toMatch(/"cctv-info"/);
-  });
-
-  test("includes the CCTV multimodal analysis function", () => {
-    const config = readFileSync("supabase/config.toml", "utf8");
-    const deployScript = readFileSync("scripts/deploy-supabase-all.ps1", "utf8");
-
-    expect(config).toContain("[functions.cctv-analyze]");
-    expect(config).toContain('entrypoint = "./functions/cctv-analyze/index.ts"');
-    expect(deployScript).toMatch(/"cctv-analyze"/);
+    for (const name of ["cctv-info", "cctv-analyze"]) {
+      expect(config).not.toContain(`[functions.${name}]`);
+      expect(config).not.toContain(`entrypoint = "./functions/${name}/index.ts"`);
+      expect(deployScript).not.toContain(`"${name}"`);
+    }
   });
 
   test("does not deploy the removed route elevation proxy", () => {

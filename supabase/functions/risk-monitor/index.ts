@@ -1,13 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 
 import { handleCorsPreflight, jsonError, jsonOk, withJsonDuration } from "../_shared/cors.ts";
-import { type RiskLevel, shouldNotify } from "../_shared/riskNotification.ts";
 import {
-  calculateMonitoredRisk,
+  buildRiskNotificationCopy,
+  type RiskLevel,
+  shouldNotify,
+} from "../_shared/riskNotification.ts";
+import {
+  calculateMonitoredRiskState,
   forEachWithConcurrency,
   getKmaNowcastBase,
+  getKmaUltraForecastBase,
   groupSubscriptionsByGrid,
   MAX_SUBSCRIPTIONS_PER_RUN,
+  type MonitoredRiskState,
   toKmaGrid,
 } from "../_shared/riskMonitor.ts";
 import { assertAllowedMethod } from "../_shared/validation.ts";
@@ -27,15 +33,6 @@ const GRID_CONCURRENCY = 4;
 const SUBSCRIPTION_CONCURRENCY = 20;
 const riskLevelOrNull = (value: string | null): RiskLevel | null =>
   value && RISK_LEVELS.has(value as RiskLevel) ? (value as RiskLevel) : null;
-
-const notificationCopy = (level: RiskLevel) => {
-  const copy = {
-    WATCH: ["침수 위험 주의", "이동 전 주변 위험과 안전 경로를 확인하세요."],
-    WARNING: ["침수 위험 경계", "안전한 대피소 이동을 준비하고 추천 경로를 확인하세요."],
-    CRITICAL: ["침수 위험 심각", "즉시 안전한 곳으로 이동하세요. 가장 안전한 경로를 확인하세요."],
-  } as const;
-  return copy[level === "WATCH" || level === "WARNING" ? level : "CRITICAL"];
-};
 
 const callFunction = async <T>(
   supabaseUrl: string,
@@ -66,21 +63,24 @@ const calculateGridRisk = async (
   lat: number,
   lng: number,
 ) => {
-  const weatherRequest = { ...toKmaGrid({ lat, lng }), ...getKmaNowcastBase() };
+  const now = new Date();
+  const weatherRequest = {
+    ...toKmaGrid({ lat, lng }),
+    ...getKmaNowcastBase(now),
+    ...getKmaUltraForecastBase(now),
+  };
   const [weatherResult, sensorsResult] = await Promise.allSettled([
-    callFunction<{ rainfallMmPerHour?: number }>(
-      supabaseUrl,
-      serviceRoleKey,
-      "weather",
-      weatherRequest,
-    ),
+    callFunction<{
+      rainfallMmPerHour?: number;
+      hourlyForecast?: Array<{ forecastAt: string; rainfallMmPerHour: number }>;
+    }>(supabaseUrl, serviceRoleKey, "weather", weatherRequest),
     callFunction<Array<Record<string, unknown>>>(supabaseUrl, serviceRoleKey, "sensors", {
       origin: { lat, lng },
     }),
   ]);
   const failedSources =
     Number(weatherResult.status === "rejected") + Number(sensorsResult.status === "rejected");
-  return calculateMonitoredRisk({
+  return calculateMonitoredRiskState({
     weather: weatherResult.status === "fulfilled" ? weatherResult.value : null,
     sensors: sensorsResult.status === "fulfilled" ? sensorsResult.value : null,
     failedSources,
@@ -126,22 +126,26 @@ Deno.serve(
       let sent = 0;
       let unknownGroups = 0;
 
-      const risksByGrid = new Map<string, RiskLevel>();
+      const risksByGrid = new Map<string, MonitoredRiskState>();
       await forEachWithConcurrency(groups, GRID_CONCURRENCY, async ([key]) => {
         const [lat, lng] = key.split(",").map(Number);
-        const currentLevel = await calculateGridRisk(supabaseUrl, serviceRoleKey, lat, lng);
-        if (currentLevel === "UNKNOWN") unknownGroups += 1;
-        risksByGrid.set(key, currentLevel);
+        const risk = await calculateGridRisk(supabaseUrl, serviceRoleKey, lat, lng);
+        if (risk.alertLevel === "UNKNOWN") unknownGroups += 1;
+        risksByGrid.set(key, risk);
       });
 
       const work = groups.flatMap(([key, rows]) => {
-        const currentLevel = risksByGrid.get(key) ?? "UNKNOWN";
-        return rows.map((subscription) => ({ currentLevel, subscription }));
+        const risk = risksByGrid.get(key) ?? {
+          currentLevel: "UNKNOWN" as const,
+          alertLevel: "UNKNOWN" as const,
+        };
+        return rows.map((subscription) => ({ risk, subscription }));
       });
       await forEachWithConcurrency(
         work,
         SUBSCRIPTION_CONCURRENCY,
-        async ({ currentLevel, subscription }) => {
+        async ({ risk, subscription }) => {
+          const currentLevel = risk.alertLevel;
           const lastNotifiedLevel = riskLevelOrNull(subscription.last_notified_level);
           const notify = shouldNotify({
             currentLevel,
@@ -153,7 +157,10 @@ Deno.serve(
 
           let delivered = false;
           if (notify) {
-            const [title, body] = notificationCopy(currentLevel);
+            const copy = buildRiskNotificationCopy({
+              level: currentLevel,
+              forecastAt: risk.forecastAt,
+            });
             try {
               const result = await callFunction<{ sent?: boolean }>(
                 supabaseUrl,
@@ -161,11 +168,11 @@ Deno.serve(
                 "push-notify",
                 {
                   subscriptionId: subscription.id,
-                  title,
-                  body,
+                  title: copy.title,
+                  body: copy.body,
                   data: {
-                    url: "/routes",
-                    tag: `flood-risk-${currentLevel.toLowerCase()}`,
+                    url: copy.url,
+                    tag: copy.tag,
                   },
                 },
               );

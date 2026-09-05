@@ -89,7 +89,7 @@ Runtime behavior:
 - There is no source-code fallback API key. If `ITS_API_KEY` is missing or blank, the function returns HTTP 200 with `status: "PENDING_ACCESS"` and `message: "ITS_API_KEY is not configured"`.
 - The frontend maps `status: "PENDING_ACCESS"` to `FALLBACK` and keeps the last successful traffic events on the map instead of treating the response as an empty OK result.
 
-돌발상황정보와 CCTV 화상자료가 같은 ITS 인증키로 승인된 경우 `ITS_API_KEY`와 `ITS_CCTV_API_KEY`에 같은 값을 등록한다. `ITS_API_KEY`가 없으면 Edge Function은 `PENDING_ACCESS`와 빈 이벤트 목록을 반환한다. 경로 API와 대피소 추천은 중단하지 않는다.
+`ITS_API_KEY`가 없으면 Edge Function은 `PENDING_ACCESS`와 빈 이벤트 목록을 반환한다. 경로 API와 대피소 추천은 중단하지 않는다.
 
 ### 요청 매핑
 
@@ -220,6 +220,23 @@ DISASTER_MSG_API_URL=
 앱은 `status: "FALLBACK"`과 **빈 목록**을 반환한다. 다른 지역의 과거 재난문자를 demo 데이터로
 대체하지 않는다.
 
+## 기상청 초단기실황·6시간 초단기예보
+
+- 데이터명: `기상청_단기예보 조회서비스`
+- Edge Function: `supabase/functions/weather`
+- 실황 오퍼레이션: `getUltraSrtNcst`
+- 예보 오퍼레이션: `getUltraSrtFcst`
+
+`weather`는 한 번의 클라이언트 요청에서 같은 `KMA_SERVICE_KEY`로 실황과 초단기예보를
+병렬 조회한다. 실황은 매시 40분 이후 직전 정시 발표본을, 초단기예보는 매시 45분 이후 직전
+30분 발표본을 사용한다. 날짜가 바뀌는 자정 전후에도 한국 표준시 기준으로 발표 날짜와 시각을
+계산한다.
+
+위·경도는 기상청 격자 좌표로 변환한다. 예보 응답은 `fcstDate`와 `fcstTime`별로 묶고
+`RN1`, `POP`, `PTY`, `T1H`, `REH`를 정규화한 뒤 가까운 6개 시간대만 반환한다.
+현재 위험도는 실황으로 계산하고, 예보값은 `/forecast`의 시간대별 예상 위험도에만 사용한다.
+예상 위험은 현재 침수 사실로 표현하지 않으며 재난문자와 현장 통제를 우선한다.
+
 ## PWA·Web Push 위험 알림
 
 Vite PWA 서비스워커는 앱 셸과 정적 JSON을 캐시하고, 새 버전은 사용자가 갱신 배너를 누를 때만
@@ -334,33 +351,8 @@ select vault.create_secret(
 | `VERTEX_AI_LOCATION`          | 기본 `us-central1`                                      |
 | `VERTEX_AI_MODEL`             | 기본 `gemini-2.5-flash`                                 |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Vertex AI 호출 권한이 있는 서비스 계정 JSON 전체 문자열 |
-| `CCTV_ANALYSIS_DAILY_LIMIT`   | CCTV 멀티모달 판독의 일일 호출 상한, 기본 `100`         |
 
 로컬 검증에서는 gcloud OAuth 토큰으로 `gen-lang-client-0563653718`, `us-central1`, `gemini-2.5-flash` 조합의 `generateContent` 호출이 성공했다. Supabase Edge Function 배포 환경에서는 gcloud가 없으므로 서비스 계정 JSON을 secret으로 등록해야 한다.
-
-### CCTV 멀티모달 판독 비용
-
-`cctv-analyze`는 담당자가 카메라별로 명시적으로 요청할 때 브라우저에서 JPEG 프레임 한 장을
-캡처해 `gemini-2.5-flash`에 보낸다. 성공 결과는 카메라별 10분 캐시를 사용하며 신뢰도 0.7
-미만은 저장하거나 위험도에 반영하지 않는다. 요청은 25초에 중단되고, 분류 작업의 비용 편차를
-막기 위해 `thinkingBudget: 0`, `maxOutputTokens: 256`을 적용한다.
-
-2026-09-03 공식 요금 기준 표준 호출 단가는 입력 US$0.30/백만 토큰, 출력 US$2.50/백만
-토큰이다. 최대 캡처 크기 1280×720은 공식 이미지 타일 계산식으로 약 6타일 × 258 = 1,548
-토큰이다. 시스템 지시문·스키마까지 포함한 입력을 보수적으로 2,500토큰, 출력을 최대 256토큰으로
-계산하면 캐시 미적중 100회의 예상 모델 비용은 다음과 같다.
-
-```text
-100 × ((2,500 × $0.30 / 1,000,000) + (256 × $2.50 / 1,000,000))
-= 약 US$0.139
-```
-
-따라서 기본 일일 상한 100회의 예상 모델 비용은 약 **US$0.14/일**이다. 실제 청구액은 프레임
-해상도와 응답 토큰에 따라 낮아질 수 있으며 DB 저장·네트워크 비용은 이 계산에 포함하지 않았다.
-
-- 요금: <https://cloud.google.com/vertex-ai/generative-ai/pricing>
-- 이미지 토큰 계산: <https://ai.google.dev/gemini-api/docs/image-understanding>
-- Gemini 2.5 Flash 추론 예산: <https://ai.google.dev/gemini-api/docs/thinking>
 
 ### Supabase CLI 업로드
 
@@ -385,8 +377,6 @@ pnpm run supabase:deploy
 - `sensors`
 - `safemap-feature-info`
 - `traffic-events`
-- `cctv-info`
-- `cctv-analyze`
 - `weather-warning`
 - `push-subscribe`
 - `push-notify`
@@ -401,10 +391,10 @@ pnpm run supabase:secrets
 등록되는 필수 secret은 `NAVER_DIRECTIONS_CLIENT_ID`, `NAVER_DIRECTIONS_CLIENT_SECRET`,
 `TMAP_APP_KEY`, `KMA_SERVICE_KEY`, `KMA_WARNING_SERVICE_KEY`, `HRFCO_SERVICE_KEY`,
 `DISASTER_MSG_SERVICE_KEY`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`,
-`RISK_MONITOR_CRON_SECRET`, `CCTV_ANALYSIS_DAILY_LIMIT`, `VERTEX_AI_PROJECT_ID`,
+`RISK_MONITOR_CRON_SECRET`, `VERTEX_AI_PROJECT_ID`,
 `VERTEX_AI_LOCATION`, `VERTEX_AI_MODEL`, `GOOGLE_SERVICE_ACCOUNT_JSON`이다. 선택 secret은
 `DISASTER_MSG_API_URL`, `GEMINI_API_KEY`, `SAFEMAP_SERVICE_KEY`, `ITS_API_KEY`,
-`ITS_CCTV_API_KEY`, `NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET`, `SENSOR_API_KEY`다.
+`NAVER_SEARCH_CLIENT_ID`, `NAVER_SEARCH_CLIENT_SECRET`, `SENSOR_API_KEY`다.
 `GOOGLE_SERVICE_ACCOUNT_JSON`은 프로젝트 루트의 `apikey.json`을 우선 사용한다.
 
 현재 CLI 로그인 계정이 해당 프로젝트 owner/admin 권한을 갖지 않으면 Supabase API가 `necessary privileges` 오류를 반환하므로, 프로젝트가 보이는 계정으로 다시 로그인해야 한다. DB push에서 비밀번호를 요구하는 경우에는 PowerShell 세션에 `SUPABASE_DB_PASSWORD`를 설정한 뒤 재실행한다.

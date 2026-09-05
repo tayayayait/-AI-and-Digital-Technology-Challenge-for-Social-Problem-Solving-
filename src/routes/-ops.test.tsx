@@ -1,11 +1,11 @@
 import { describe, expect, test } from "vitest";
 
-import { shouldRenderOpsCctvFallback } from "./ops";
+import { shouldRedirectOpsIndex } from "./ops";
 
 describe("ops route nesting", () => {
-  test("renders the CCTV fallback only on the exact field information route", () => {
-    expect(shouldRenderOpsCctvFallback("/ops")).toBe(true);
-    expect(shouldRenderOpsCctvFallback("/ops/cctv")).toBe(false);
-    expect(shouldRenderOpsCctvFallback("/ops/data-health")).toBe(false);
+  test("redirects only the empty operations index to the risk-zone screen", () => {
+    expect(shouldRedirectOpsIndex("/ops")).toBe(true);
+    expect(shouldRedirectOpsIndex("/ops/risk-zones")).toBe(false);
+    expect(shouldRedirectOpsIndex("/ops/data-health")).toBe(false);
   });
 });

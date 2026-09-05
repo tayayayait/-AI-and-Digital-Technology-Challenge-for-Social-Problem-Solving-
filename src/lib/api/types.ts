@@ -27,6 +27,16 @@ export interface WeatherAlert {
   issuedAt: string;
 }
 
+export interface WeatherForecastPoint {
+  forecastAt: string;
+  rainfallMmPerHour: number;
+  temperatureCelsius?: number;
+  humidityPercent?: number;
+  precipitationProbabilityPercent?: number;
+  precipitationAmount?: string;
+  precipitationType?: string;
+}
+
 export interface WeatherSnapshot {
   observedAt: string;
   rainfallMmPerHour: number;
@@ -37,4 +47,5 @@ export interface WeatherSnapshot {
   precipitationType?: string;
   waterLevelMeters?: number;
   alerts: WeatherAlert[];
+  hourlyForecast: WeatherForecastPoint[];
 }

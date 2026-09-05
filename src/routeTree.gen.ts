@@ -13,13 +13,13 @@ import { Route as SheltersRouteImport } from './routes/shelters'
 import { Route as RoutesRouteImport } from './routes/routes'
 import { Route as OpsRouteImport } from './routes/ops'
 import { Route as HelpRouteImport } from './routes/help'
+import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OpsSheltersRouteImport } from './routes/ops/shelters'
 import { Route as OpsRiskZonesRouteImport } from './routes/ops/risk-zones'
 import { Route as OpsMessagesRouteImport } from './routes/ops/messages'
 import { Route as OpsLoginRouteImport } from './routes/ops/login'
 import { Route as OpsDataHealthRouteImport } from './routes/ops/data-health'
-import { Route as OpsCctvRouteImport } from './routes/ops/cctv'
 
 const SheltersRoute = SheltersRouteImport.update({
   id: '/shelters',
@@ -39,6 +39,11 @@ const OpsRoute = OpsRouteImport.update({
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForecastRoute = ForecastRouteImport.update({
+  id: '/forecast',
+  path: '/forecast',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -71,19 +76,14 @@ const OpsDataHealthRoute = OpsDataHealthRouteImport.update({
   path: '/data-health',
   getParentRoute: () => OpsRoute,
 } as any)
-const OpsCctvRoute = OpsCctvRouteImport.update({
-  id: '/cctv',
-  path: '/cctv',
-  getParentRoute: () => OpsRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/help': typeof HelpRoute
   '/ops': typeof OpsRouteWithChildren
   '/routes': typeof RoutesRoute
   '/shelters': typeof SheltersRoute
-  '/ops/cctv': typeof OpsCctvRoute
   '/ops/data-health': typeof OpsDataHealthRoute
   '/ops/login': typeof OpsLoginRoute
   '/ops/messages': typeof OpsMessagesRoute
@@ -92,11 +92,11 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/help': typeof HelpRoute
   '/ops': typeof OpsRouteWithChildren
   '/routes': typeof RoutesRoute
   '/shelters': typeof SheltersRoute
-  '/ops/cctv': typeof OpsCctvRoute
   '/ops/data-health': typeof OpsDataHealthRoute
   '/ops/login': typeof OpsLoginRoute
   '/ops/messages': typeof OpsMessagesRoute
@@ -106,11 +106,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/forecast': typeof ForecastRoute
   '/help': typeof HelpRoute
   '/ops': typeof OpsRouteWithChildren
   '/routes': typeof RoutesRoute
   '/shelters': typeof SheltersRoute
-  '/ops/cctv': typeof OpsCctvRoute
   '/ops/data-health': typeof OpsDataHealthRoute
   '/ops/login': typeof OpsLoginRoute
   '/ops/messages': typeof OpsMessagesRoute
@@ -121,11 +121,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/forecast'
     | '/help'
     | '/ops'
     | '/routes'
     | '/shelters'
-    | '/ops/cctv'
     | '/ops/data-health'
     | '/ops/login'
     | '/ops/messages'
@@ -134,11 +134,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forecast'
     | '/help'
     | '/ops'
     | '/routes'
     | '/shelters'
-    | '/ops/cctv'
     | '/ops/data-health'
     | '/ops/login'
     | '/ops/messages'
@@ -147,11 +147,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/forecast'
     | '/help'
     | '/ops'
     | '/routes'
     | '/shelters'
-    | '/ops/cctv'
     | '/ops/data-health'
     | '/ops/login'
     | '/ops/messages'
@@ -161,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ForecastRoute: typeof ForecastRoute
   HelpRoute: typeof HelpRoute
   OpsRoute: typeof OpsRouteWithChildren
   RoutesRoute: typeof RoutesRoute
@@ -195,6 +196,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help'
       preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forecast': {
+      id: '/forecast'
+      path: '/forecast'
+      fullPath: '/forecast'
+      preLoaderRoute: typeof ForecastRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -239,18 +247,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OpsDataHealthRouteImport
       parentRoute: typeof OpsRoute
     }
-    '/ops/cctv': {
-      id: '/ops/cctv'
-      path: '/cctv'
-      fullPath: '/ops/cctv'
-      preLoaderRoute: typeof OpsCctvRouteImport
-      parentRoute: typeof OpsRoute
-    }
   }
 }
 
 interface OpsRouteChildren {
-  OpsCctvRoute: typeof OpsCctvRoute
   OpsDataHealthRoute: typeof OpsDataHealthRoute
   OpsLoginRoute: typeof OpsLoginRoute
   OpsMessagesRoute: typeof OpsMessagesRoute
@@ -259,7 +259,6 @@ interface OpsRouteChildren {
 }
 
 const OpsRouteChildren: OpsRouteChildren = {
-  OpsCctvRoute: OpsCctvRoute,
   OpsDataHealthRoute: OpsDataHealthRoute,
   OpsLoginRoute: OpsLoginRoute,
   OpsMessagesRoute: OpsMessagesRoute,
@@ -271,6 +270,7 @@ const OpsRouteWithChildren = OpsRoute._addFileChildren(OpsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ForecastRoute: ForecastRoute,
   HelpRoute: HelpRoute,
   OpsRoute: OpsRouteWithChildren,
   RoutesRoute: RoutesRoute,

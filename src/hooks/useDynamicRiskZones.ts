@@ -107,7 +107,6 @@ export function useDynamicRiskZones() {
         cache: overlapCache,
         signals: {
           weather: liveWeather,
-          forecast: liveWeather,
           disasterMessages: liveMessages,
           sensors,
           trafficEvents,

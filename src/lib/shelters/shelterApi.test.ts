@@ -198,7 +198,7 @@ describe("fetchShelters", () => {
     expect(query.gte).toHaveBeenCalledWith("lng", bounds.minX);
     expect(query.lte).toHaveBeenCalledWith("lng", bounds.maxX);
     expect(result.data).toHaveLength(1);
-    expect(result.data[0]?.name).toBe("바운즈 대피소");
+    expect(result.data?.[0]?.name).toBe("바운즈 대피소");
   });
 
   test("filters static shelters by bounds when bounds are provided", async () => {

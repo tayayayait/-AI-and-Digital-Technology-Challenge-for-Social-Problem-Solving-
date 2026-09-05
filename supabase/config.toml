@@ -56,16 +56,6 @@ enabled = true
 verify_jwt = false
 entrypoint = "./functions/traffic-events/index.ts"
 
-[functions.cctv-info]
-enabled = true
-verify_jwt = false
-entrypoint = "./functions/cctv-info/index.ts"
-
-[functions.cctv-analyze]
-enabled = true
-verify_jwt = false
-entrypoint = "./functions/cctv-analyze/index.ts"
-
 [functions.push-subscribe]
 enabled = true
 verify_jwt = false

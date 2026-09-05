@@ -65,4 +65,50 @@ describe("situation facts", () => {
       "현재 위치 기준 직선거리 156m",
     );
   });
+
+  test("가장 높은 6시간 예상 위험을 현재 관측과 구분해 AI 근거에 포함한다", () => {
+    const sourceTimestamp = new Date().toISOString();
+    const facts = buildSituationFacts({
+      assessment: {
+        total: 5,
+        missingDataCount: 0,
+        reasons: [],
+        dataSources: [{ label: "기상청 초단기예보", timestamp: sourceTimestamp, status: "OK" }],
+        riskOutlook: [
+          {
+            forecastAt: "2026-09-05T18:00:00+09:00",
+            rainfallMmPerHour: 8,
+            precipitationProbabilityPercent: 60,
+            precipitationType: "rain",
+            riskScore: 13,
+            riskLevel: "SAFE",
+            reasons: [],
+          },
+          {
+            forecastAt: "2026-09-05T19:00:00+09:00",
+            rainfallMmPerHour: 30,
+            precipitationProbabilityPercent: 90,
+            precipitationType: "rain",
+            riskScore: 55,
+            riskLevel: "WARNING",
+            reasons: ["강우·예보 위험"],
+          },
+        ],
+      } as unknown as Parameters<typeof buildSituationFacts>[0]["assessment"],
+      riskLevel: "SAFE",
+      timestamp: sourceTimestamp,
+      online: true,
+      alternatives: [],
+    });
+
+    const forecastFact = facts.find((fact) => fact.id === "forecast-peak");
+    expect(forecastFact).toMatchObject({
+      kind: "WEATHER",
+      source: "기상청 초단기예보 · 위험도 계산",
+    });
+    expect(forecastFact?.text).toContain("19시 예상");
+    expect(forecastFact?.text).toContain("시간당 강수량 30mm");
+    expect(forecastFact?.text).toContain("예상 위험 경계 55점");
+    expect(forecastFact?.text).toContain("현재 침수 사실이 아님");
+  });
 });

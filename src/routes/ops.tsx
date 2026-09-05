@@ -1,26 +1,25 @@
-import { createFileRoute, Outlet, useLocation } from "@tanstack/react-router";
-
-import { FieldCctv } from "@/components/field/FieldCctv";
+import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/ops")({
   head: () => ({
     meta: [
-      { title: "전국 CCTV — 침수퇴로 AI" },
+      { title: "재난 대응 현황 — 침수퇴로 AI" },
       {
         name: "description",
-        content: "화면 진입과 동시에 전국 CCTV 위치를 확인하는 공개 현장정보입니다.",
+        content: "위험지역, 주민 안내문, 대피소 및 공공데이터 상태를 확인합니다.",
       },
     ],
   }),
+  beforeLoad: ({ location }) => {
+    if (shouldRedirectOpsIndex(location.pathname)) {
+      throw redirect({ to: "/ops/risk-zones" });
+    }
+  },
   component: OpsRouteShell,
 });
 
-export const shouldRenderOpsCctvFallback = (pathname: string) => pathname === "/ops";
+export const shouldRedirectOpsIndex = (pathname: string) => pathname === "/ops";
 
 function OpsRouteShell() {
-  const { pathname } = useLocation();
-
-  if (shouldRenderOpsCctvFallback(pathname)) return <FieldCctv />;
-
   return <Outlet />;
 }

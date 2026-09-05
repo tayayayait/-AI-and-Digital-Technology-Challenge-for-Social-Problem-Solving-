@@ -38,15 +38,21 @@ describe("OpsLayout", () => {
         description="모든 시민이 확인하는 재난 현장 정보"
         detail={<div>상세 정보</div>}
       >
-        <div>공개 CCTV와 수위 정보</div>
+        <div>위험지역과 수위 정보</div>
       </OpsLayout>,
     );
 
     expect(screen.getAllByText("현장정보").length).toBeGreaterThan(0);
-    expect(screen.getByText("공개 CCTV와 수위 정보")).toBeInTheDocument();
+    expect(screen.getByText("위험지역과 수위 정보")).toBeInTheDocument();
     expect(screen.queryByText(/권한/)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "CCTV" })).toHaveAttribute("href", "/ops/cctv");
-    expect(screen.queryByRole("link", { name: "위험지역" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "데이터 상태" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "위험지역" })).toHaveAttribute(
+      "href",
+      "/ops/risk-zones",
+    );
+    expect(screen.getByRole("link", { name: "주민 안내문" })).toHaveAttribute(
+      "href",
+      "/ops/messages",
+    );
+    expect(screen.queryByRole("link", { name: "CCTV" })).not.toBeInTheDocument();
   });
 });

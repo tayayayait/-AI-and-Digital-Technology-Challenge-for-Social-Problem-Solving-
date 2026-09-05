@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { NaverMap } from "./NaverMap";
 import type { WmsLayerConfig } from "@/lib/map/wms";
 import type { LatLng, RiskZone, Shelter, RouteResult, TrafficEvent } from "@/lib/types";
-import type { CctvFeed } from "@/lib/api/cctvInfo";
 
 /**
  * 네이버 지도 SDK는 브라우저 전역 window/document에 의존하므로 SSR 시 렌더하면 안 됨.
@@ -18,21 +17,12 @@ export function ClientMap(props: {
   height?: number | string;
   onShelterClick?: (s: Shelter) => void;
   selectedShelterId?: string | null;
-  selectedLocation?: LatLng | null;
-  selectedLocationLabel?: string;
-  showCenterMarker?: boolean;
-  onLocationSelect?: (location: LatLng, source: "MAP") => void;
-  onLocationDoubleClick?: (location: LatLng, source: "MAP") => void;
   showCurrentLocationButton?: boolean;
   onCurrentLocationClick?: () => void;
   isCurrentLocationLoading?: boolean;
-  cctvs?: CctvFeed[];
-  selectedCctvId?: string | null;
-  onCctvClick?: (cctv: CctvFeed) => void;
   trafficEvents?: TrafficEvent[];
   selectedTrafficEventId?: string | null;
   onTrafficEventClick?: (event: TrafficEvent) => void;
-  onCenterChanged?: (location: LatLng) => void;
   onBoundsChanged?: (bounds: { minX: number; maxX: number; minY: number; maxY: number }) => void;
 }) {
   const [mounted, setMounted] = useState(false);

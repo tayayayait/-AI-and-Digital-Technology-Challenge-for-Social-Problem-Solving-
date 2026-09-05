@@ -8,7 +8,6 @@ export const API_CACHE_TTL_MS = {
   WEATHER_ALERT: 30 * 60 * 1000,
   DISASTER_MESSAGES: 60 * 1000,
   TRAFFIC_EVENTS: 60 * 1000,
-  CCTV: 60 * 1000,
   ROUTE: 5 * 60 * 1000,
   GEMINI: 30 * 60 * 1000,
 } as const;

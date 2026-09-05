@@ -7,7 +7,6 @@ const CONNECTIVITY_QUERY_KEYS = new Set([
   "weather-warning",
   "disaster-messages",
   "traffic-events",
-  "cctv-info",
 ]);
 
 const NETWORK_ERROR_PATTERN =

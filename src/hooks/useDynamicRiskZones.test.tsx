@@ -196,7 +196,6 @@ describe("useDynamicRiskZones", () => {
         regionName: "부산 해운대구",
         signals: expect.objectContaining({
           weather: expect.objectContaining({ rainfallMmPerHour: 12 }),
-          forecast: expect.objectContaining({ rainfallMmPerHour: 12 }),
           disasterMessages: [expect.objectContaining({ id: "message-1" })],
           sensors: [expect.objectContaining({ id: "sensor-1" })],
           trafficEvents: [trafficEvent],

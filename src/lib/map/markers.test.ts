@@ -4,7 +4,6 @@ import {
   createControlMarkerIcon,
   createCurrentLocationMarkerIcon,
   createRiskZoneMarkerIcon,
-  createSelectedLocationMarkerIcon,
   createShelterMarkerIcon,
 } from "./markers";
 import type { Shelter } from "@/lib/types";
@@ -58,16 +57,6 @@ describe("map marker icons", () => {
     expect(icon.content).toContain("width:28px");
     expect(maps.Size).toHaveBeenCalledWith(28, 28);
     expect(maps.Point).toHaveBeenCalledWith(14, 14);
-  });
-
-  test("builds a selected CCTV lookup location marker", () => {
-    const maps = createMapsMock();
-    const icon = createSelectedLocationMarkerIcon(maps, "서울 서초구");
-
-    expect(icon.content).toContain("CCTV 조회 위치: 서울 서초구");
-    expect(icon.content).toContain("width:34px");
-    expect(maps.Size).toHaveBeenCalledWith(34, 34);
-    expect(maps.Point).toHaveBeenCalledWith(17, 17);
   });
 
   test("builds a risk-zone diamond marker", () => {

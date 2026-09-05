@@ -55,4 +55,52 @@ describe("KMA Edge weather normalization", () => {
       baseTime: "2300",
     });
   });
+
+  test("groups ultra-short forecast categories into a sorted six-hour timeline", () => {
+    const forecastItems = Array.from({ length: 7 }, (_, index) => {
+      const fcstTime = `${String(index + 15).padStart(2, "0")}00`;
+      return [
+        {
+          category: "RN1",
+          fcstDate: "20260611",
+          fcstTime,
+          fcstValue: index === 0 ? "강수없음" : String(index * 3),
+        },
+        {
+          category: "POP",
+          fcstDate: "20260611",
+          fcstTime,
+          fcstValue: String(index * 10),
+        },
+        {
+          category: "PTY",
+          fcstDate: "20260611",
+          fcstTime,
+          fcstValue: index === 0 ? "0" : "1",
+        },
+      ];
+    }).flat();
+
+    const weather = normalizeKmaWeather({
+      baseDate: "20260611",
+      baseTime: "1400",
+      nowcastItems: [{ category: "RN1", obsrValue: "0" }],
+      forecastItems,
+    });
+
+    expect(weather.hourlyForecast).toHaveLength(6);
+    expect(weather.hourlyForecast[0]).toEqual({
+      forecastAt: "2026-06-11T15:00:00+09:00",
+      rainfallMmPerHour: 0,
+      precipitationProbabilityPercent: 0,
+      precipitationAmount: "강수없음",
+      precipitationType: "none",
+    });
+    expect(weather.hourlyForecast[5]).toMatchObject({
+      forecastAt: "2026-06-11T20:00:00+09:00",
+      rainfallMmPerHour: 15,
+      precipitationProbabilityPercent: 50,
+      precipitationType: "rain",
+    });
+  });
 });

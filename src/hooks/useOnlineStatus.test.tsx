@@ -43,12 +43,12 @@ describe("useOnlineStatus", () => {
     expect(removeEventListener).toHaveBeenCalledWith("offline", offlineHandler);
   });
 
-  it("stays online when traffic and CCTV time out after a successful weather request", () => {
+  it("stays online when upstream services time out after a successful weather request", () => {
     const { result } = renderHook(() => useOnlineStatus());
 
     act(() => {
       queryNetworkSignal.reportSuccess();
-      for (const key of ["traffic-events", "cctv-info"]) {
+      for (const key of ["traffic-events", "weather-warning"]) {
         const outcome = classifyQueryNetworkResult([key], {
           status: "FALLBACK",
           error: "API Timeout",

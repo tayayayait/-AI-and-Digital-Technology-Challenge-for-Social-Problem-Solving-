@@ -1,30 +1,19 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
-import { Camera, ExternalLink, LocateFixed, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { LocateFixed, X } from "lucide-react";
 
 import type { LatLng, RiskLevel, RiskZone, RouteResult, Shelter, TrafficEvent } from "@/lib/types";
 import { getNaverMapsClientId, loadNaverMapsSDK } from "@/lib/map/naverMaps";
 import {
   createCurrentLocationMarkerIcon,
   createRiskZoneMarkerIcon,
-  createSelectedLocationMarkerIcon,
   createShelterMarkerIcon,
-  createCctvMarkerIcon,
   createTrafficEventMarkerIcon,
   getShelterMarkerStatusLabel,
 } from "@/lib/map/markers";
 import { buildSafeMapWmsImageUrl, type WmsBounds, type WmsLayerConfig } from "@/lib/map/wms";
 import { formatDistance, formatTimestamp, haversineMeters } from "@/lib/utils";
-import type { CctvFeed } from "@/lib/api/cctvInfo";
 import { classifyTrafficEvent } from "@/lib/risk/trafficEventRisk";
 
 interface NaverMapProps {
@@ -37,19 +26,10 @@ interface NaverMapProps {
   height?: number | string;
   onShelterClick?: (s: Shelter) => void;
   selectedShelterId?: string | null;
-  selectedLocation?: LatLng | null;
-  selectedLocationLabel?: string;
-  showCenterMarker?: boolean;
-  onLocationSelect?: (location: LatLng, source: "MAP") => void;
-  onLocationDoubleClick?: (location: LatLng, source: "MAP") => void;
-  onCenterChanged?: (location: LatLng) => void;
   showCurrentLocationButton?: boolean;
   onCurrentLocationClick?: () => void;
   isCurrentLocationLoading?: boolean;
   clientId?: string;
-  cctvs?: CctvFeed[];
-  selectedCctvId?: string | null;
-  onCctvClick?: (cctv: CctvFeed) => void;
   trafficEvents?: TrafficEvent[];
   selectedTrafficEventId?: string | null;
   onTrafficEventClick?: (event: TrafficEvent) => void;
@@ -147,51 +127,6 @@ const toWmsBounds = (bounds: NaverMapsBoundsInstance | null | undefined): WmsBou
   return { west, south, east, north };
 };
 
-const toPlainLatLng = (point: unknown): LatLng | null => {
-  if (!point || typeof point !== "object") return null;
-  const lat = readCoordinate(point, "lat");
-  const lng = readCoordinate(point, "lng");
-
-  if (lat === null || lng === null) return null;
-  return { lat, lng };
-};
-
-const readMapEventLocation = (event: unknown): LatLng | null => {
-  if (!event || typeof event !== "object") return null;
-  const eventRecord = event as Record<string, unknown>;
-  const candidates = [eventRecord.coord, eventRecord.latlng, eventRecord.latLng, event];
-
-  for (const candidate of candidates) {
-    const location = toPlainLatLng(candidate);
-    if (location) return location;
-  }
-
-  return null;
-};
-
-const clampPercent = (value: number) => Math.max(4, Math.min(96, value));
-
-const projectFallbackPoint = (center: LatLng, point: LatLng) => ({
-  x: clampPercent(50 + (point.lng - center.lng) * 1200),
-  y: clampPercent(50 - (point.lat - center.lat) * 1600),
-});
-
-const pointFromFallbackClick = (
-  event: ReactMouseEvent<HTMLButtonElement>,
-  center: LatLng,
-): LatLng => {
-  const rect = event.currentTarget.getBoundingClientRect();
-  if (rect.width <= 0 || rect.height <= 0) return center;
-
-  const xPercent = ((event.clientX - rect.left) / rect.width) * 100;
-  const yPercent = ((event.clientY - rect.top) / rect.height) * 100;
-
-  return {
-    lat: center.lat + (50 - yPercent) / 1600,
-    lng: center.lng + (xPercent - 50) / 1200,
-  };
-};
-
 const removeEventListener = (
   maps: NaverMapsNamespace["maps"],
   listener: NaverMapsEventListener,
@@ -210,7 +145,7 @@ const removeEventListener = (
 const mapErrorMessage = (error: unknown) => {
   const message = error instanceof Error ? error.message : "";
   if (message.includes("VITE_NAVER_MAPS_CLIENT_ID")) return message;
-  return "네이버 지도를 불러오지 못했습니다. 대체 지도로 위치를 선택하세요.";
+  return "네이버 지도를 불러오지 못했습니다. 잠시 후 다시 시도하세요.";
 };
 
 const detachMapObject = (
@@ -237,19 +172,10 @@ export function NaverMap({
   height = "100%",
   onShelterClick,
   selectedShelterId,
-  selectedLocation,
-  selectedLocationLabel = "선택 위치",
-  showCenterMarker = true,
-  onLocationSelect,
-  onLocationDoubleClick,
-  onCenterChanged,
   showCurrentLocationButton = false,
   onCurrentLocationClick,
   isCurrentLocationLoading = false,
   clientId = getNaverMapsClientId(),
-  cctvs = [],
-  selectedCctvId,
-  onCctvClick,
   trafficEvents = [],
   selectedTrafficEventId,
   onTrafficEventClick,
@@ -272,20 +198,9 @@ export function NaverMap({
       }
     >
   >(new Map());
-  const cctvMarkersRef = useRef<
-    Map<
-      string,
-      {
-        marker: NaverMapsMarkerInstance;
-        listener: NaverMapsEventListener | null;
-        cctv: CctvFeed;
-      }
-    >
-  >(new Map());
   const [error, setError] = useState<string | null>(null);
   const [mapReadyVersion, setMapReadyVersion] = useState(0);
   const [selectedShelter, setSelectedShelter] = useState<Shelter | null>(null);
-  const [selectedCctv, setSelectedCctv] = useState<CctvFeed | null>(null);
   const [selectedTrafficEvent, setSelectedTrafficEvent] = useState<TrafficEvent | null>(null);
 
   const mapStyle: CSSProperties = useMemo(
@@ -302,8 +217,6 @@ export function NaverMap({
     [shelters],
   );
 
-  const cctvById = useMemo(() => new Map(cctvs.map((cctv) => [cctv.id, cctv])), [cctvs]);
-
   const trafficEventById = useMemo(
     () => new Map(trafficEvents.map((event) => [event.id, event])),
     [trafficEvents],
@@ -313,32 +226,16 @@ export function NaverMap({
     (shelter: Shelter) => {
       dismissedShelterIdRef.current = null;
       setSelectedShelter(shelter);
-      setSelectedCctv(null);
       setSelectedTrafficEvent(null);
       onShelterClick?.(shelter);
     },
     [onShelterClick],
   );
 
-  const selectCctv = useCallback(
-    (cctv: CctvFeed) => {
-      setSelectedCctv(cctv);
-      setSelectedShelter(null);
-      setSelectedTrafficEvent(null);
-      onCctvClick?.(cctv);
-    },
-    [onCctvClick],
-  );
-  const selectCctvRef = useRef(selectCctv);
-  useEffect(() => {
-    selectCctvRef.current = selectCctv;
-  }, [selectCctv]);
-
   const selectTrafficEvent = useCallback(
     (trafficEvent: TrafficEvent) => {
       setSelectedTrafficEvent(trafficEvent);
       setSelectedShelter(null);
-      setSelectedCctv(null);
       onTrafficEventClick?.(trafficEvent);
     },
     [onTrafficEventClick],
@@ -380,16 +277,6 @@ export function NaverMap({
 
     setSelectedShelter(shelterById.get(selectedShelterId) ?? null);
   }, [selectedShelterId, shelterById]);
-
-  useEffect(() => {
-    if (selectedCctvId === undefined) return;
-    if (!selectedCctvId) {
-      setSelectedCctv(null);
-      return;
-    }
-
-    setSelectedCctv(cctvById.get(selectedCctvId) ?? null);
-  }, [selectedCctvId, cctvById]);
 
   useEffect(() => {
     if (selectedTrafficEventId === undefined) return;
@@ -481,16 +368,6 @@ export function NaverMap({
         return;
       }
 
-      const cctvButton = target.closest<HTMLButtonElement>("[data-cctv-id]");
-      if (cctvButton && container.contains(cctvButton)) {
-        const cctvId = cctvButton.dataset.cctvId;
-        if (cctvId) {
-          const cctv = cctvById.get(cctvId);
-          if (cctv) selectCctv(cctv);
-        }
-        return;
-      }
-
       const trafficEventButton = target.closest<HTMLButtonElement>("[data-traffic-event-id]");
       if (trafficEventButton && container.contains(trafficEventButton)) {
         const trafficEventId = trafficEventButton.dataset.trafficEventId;
@@ -503,7 +380,7 @@ export function NaverMap({
 
     container.addEventListener("click", handleMarkerClick);
     return () => container.removeEventListener("click", handleMarkerClick);
-  }, [selectShelter, shelterById, selectCctv, cctvById, selectTrafficEvent, trafficEventById]);
+  }, [selectShelter, shelterById, selectTrafficEvent, trafficEventById]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -511,33 +388,6 @@ export function NaverMap({
     if (!map || !maps) return;
 
     const listeners: NaverMapsEventListener[] = [];
-
-    if (onLocationSelect) {
-      listeners.push(
-        maps.Event.addListener(map, "click", (event) => {
-          const location = readMapEventLocation(event);
-          if (location) onLocationSelect(location, "MAP");
-        }),
-      );
-    }
-
-    if (onLocationDoubleClick) {
-      listeners.push(
-        maps.Event.addListener(map, "dblclick", (event) => {
-          const location = readMapEventLocation(event);
-          if (location) onLocationDoubleClick(location, "MAP");
-        }),
-      );
-    }
-
-    if (onCenterChanged) {
-      listeners.push(
-        maps.Event.addListener(map, "dragend", () => {
-          const location = map.getCenter ? toPlainLatLng(map.getCenter()) : null;
-          if (location) onCenterChanged(location);
-        }),
-      );
-    }
 
     listeners.push(
       maps.Event.addListener(map, "idle", () => {
@@ -567,9 +417,9 @@ export function NaverMap({
       }
       for (const listener of listeners) removeEventListener(maps, listener);
     };
-  }, [mapReadyVersion, onBoundsChanged, onCenterChanged, onLocationDoubleClick, onLocationSelect]);
+  }, [mapReadyVersion, onBoundsChanged]);
 
-  // 1. Center Marker & Selected Location Marker
+  // 1. Current location marker
   useEffect(() => {
     const map = mapRef.current;
     const maps = mapsRef.current;
@@ -577,27 +427,14 @@ export function NaverMap({
 
     const markers: NaverMapsMarkerInstance[] = [];
     try {
-      if (showCenterMarker) {
-        markers.push(
-          new maps.Marker({
-            map,
-            position: toLatLng(maps, center),
-            icon: createCurrentLocationMarkerIcon(maps),
-            title: "현재 위치",
-          }),
-        );
-      }
-
-      if (selectedLocation) {
-        markers.push(
-          new maps.Marker({
-            map,
-            position: toLatLng(maps, selectedLocation),
-            icon: createSelectedLocationMarkerIcon(maps, selectedLocationLabel),
-            title: `CCTV 조회 위치: ${selectedLocationLabel}`,
-          }),
-        );
-      }
+      markers.push(
+        new maps.Marker({
+          map,
+          position: toLatLng(maps, center),
+          icon: createCurrentLocationMarkerIcon(maps),
+          title: "현재 위치",
+        }),
+      );
     } catch (error) {
       setError(mapErrorMessage(error));
     }
@@ -605,7 +442,7 @@ export function NaverMap({
     return () => {
       for (const marker of markers) detachMapObject(marker);
     };
-  }, [center, mapReadyVersion, showCenterMarker, selectedLocation, selectedLocationLabel]);
+  }, [center, mapReadyVersion]);
 
   // 2. Risk Zones & Routes
   useEffect(() => {
@@ -728,76 +565,7 @@ export function NaverMap({
     }
   }, [mapReadyVersion, shelters, selectShelter]);
 
-  // 4. CCTVs: map instance 교체 또는 언마운트 시 보관 중인 마커를 정리합니다.
-  useEffect(() => {
-    const maps = mapsRef.current;
-    const cctvMarkers = cctvMarkersRef.current;
-    return () => {
-      if (maps) {
-        for (const entry of cctvMarkers.values()) {
-          if (entry.listener) removeEventListener(maps, entry.listener);
-          detachMapObject(entry.marker);
-        }
-      }
-      cctvMarkers.clear();
-    };
-  }, [mapReadyVersion]);
-
-  // 4. CCTVs: ID 기준 차분 갱신으로 유지 가능한 마커는 재사용합니다.
-  useEffect(() => {
-    const map = mapRef.current;
-    const maps = mapsRef.current;
-    if (!map || !maps) return;
-
-    try {
-      const nextCctvIds = new Set(cctvs.map((cctv) => cctv.id));
-
-      for (const [id, entry] of cctvMarkersRef.current.entries()) {
-        if (!nextCctvIds.has(id)) {
-          if (entry.listener) removeEventListener(maps, entry.listener);
-          detachMapObject(entry.marker);
-          cctvMarkersRef.current.delete(id);
-        }
-      }
-
-      for (const cctv of cctvs) {
-        const existing = cctvMarkersRef.current.get(cctv.id);
-        if (existing) {
-          existing.cctv = cctv;
-          continue;
-        }
-
-        const marker = new maps.Marker({
-          map,
-          position: toLatLng(maps, cctv.position),
-          icon: createCctvMarkerIcon(maps, cctv.id, cctv.name),
-          title: cctv.name,
-          zIndex: 50,
-        });
-
-        const entry = {
-          marker,
-          listener: null as NaverMapsEventListener | null,
-          cctv,
-        };
-        entry.listener = maps.Event.addListener(marker, "click", () => {
-          selectCctvRef.current(entry.cctv);
-        });
-        cctvMarkersRef.current.set(cctv.id, entry);
-      }
-    } catch (error) {
-      setError(mapErrorMessage(error));
-    }
-  }, [mapReadyVersion, cctvs]);
-
-  useEffect(() => {
-    const selectedId = selectedCctvId ?? selectedCctv?.id;
-    for (const [id, entry] of cctvMarkersRef.current.entries()) {
-      entry.marker.setZIndex?.(id === selectedId ? 100 : 50);
-    }
-  }, [cctvs, mapReadyVersion, selectedCctv?.id, selectedCctvId]);
-
-  // 5. Traffic Events
+  // 4. Traffic Events
   useEffect(() => {
     const map = mapRef.current;
     const maps = mapsRef.current;
@@ -892,12 +660,12 @@ export function NaverMap({
   return (
     <div className="relative overflow-hidden bg-[#e8f0f7]" style={mapStyle}>
       {error ? (
-        <FallbackSelectionMap
-          center={center}
-          selectedLocation={selectedLocation}
-          selectedLocationLabel={selectedLocationLabel}
-          onLocationSelect={onLocationSelect}
-        />
+        <div
+          className="grid size-full place-items-center bg-[#dce9f4] px-6 text-center text-[12px] font-bold text-[var(--text-muted)]"
+          aria-label="지도 대체 화면"
+        >
+          지도를 표시할 수 없습니다.
+        </div>
       ) : (
         <div ref={containerRef} className="size-full" aria-label="네이버 지도" />
       )}
@@ -928,10 +696,6 @@ export function NaverMap({
         <MapShelterSheet center={center} shelter={selectedShelter} onClose={closeShelterSheet} />
       ) : null}
 
-      {selectedCctv ? (
-        <MapCctvSheet center={center} cctv={selectedCctv} onClose={() => setSelectedCctv(null)} />
-      ) : null}
-
       {selectedTrafficEvent ? (
         <MapTrafficEventSheet
           center={center}
@@ -941,29 +705,13 @@ export function NaverMap({
       ) : null}
 
       <ul className="sr-only" aria-label="지도 데이터 목록">
-        {showCenterMarker ? (
-          <li>
-            현재 위치: {center.lat.toFixed(5)}, {center.lng.toFixed(5)}
-          </li>
-        ) : null}
-        {selectedLocation ? (
-          <li>
-            CCTV 조회 위치: {selectedLocationLabel}, {selectedLocation.lat.toFixed(5)},{" "}
-            {selectedLocation.lng.toFixed(5)}
-          </li>
-        ) : null}
+        <li>
+          현재 위치: {center.lat.toFixed(5)}, {center.lng.toFixed(5)}
+        </li>
         {shelters.map((shelter) => (
           <li key={shelter.id}>
             대피소: {shelter.name}, {getShelterMarkerStatusLabel(shelter.status)}, 현재 위치 기준{" "}
             {formatDistance(haversineMeters(center, shelter.position))}
-          </li>
-        ))}
-        {cctvs.map((cctv) => (
-          <li key={cctv.id}>
-            CCTV: {cctv.name},{" "}
-            {showCenterMarker
-              ? `현재 위치 기준 ${formatDistance(haversineMeters(center, cctv.position))}`
-              : `좌표 ${cctv.position.lat.toFixed(5)}, ${cctv.position.lng.toFixed(5)}`}
           </li>
         ))}
         {trafficEvents.map((trafficEvent) => (
@@ -983,55 +731,6 @@ export function NaverMap({
         ))}
       </ul>
     </div>
-  );
-}
-
-function FallbackSelectionMap({
-  center,
-  selectedLocation,
-  selectedLocationLabel,
-  onLocationSelect,
-}: {
-  center: LatLng;
-  selectedLocation?: LatLng | null;
-  selectedLocationLabel: string;
-  onLocationSelect?: (location: LatLng, source: "MAP") => void;
-}) {
-  const marker = projectFallbackPoint(center, selectedLocation ?? center);
-
-  return (
-    <button
-      type="button"
-      aria-label="대체 지도에서 CCTV 조회 위치 선택"
-      onClick={(event) => onLocationSelect?.(pointFromFallbackClick(event, center), "MAP")}
-      className="relative size-full cursor-crosshair overflow-hidden bg-[#dce9f4] text-left"
-    >
-      <span
-        className="absolute inset-0 opacity-70"
-        style={{
-          backgroundImage:
-            "linear-gradient(#b8c7d6 1px, transparent 1px), linear-gradient(90deg, #b8c7d6 1px, transparent 1px)",
-          backgroundSize: "28px 28px",
-        }}
-        aria-hidden
-      />
-      <span className="absolute left-1/2 top-0 h-full w-px bg-slate-400/50" aria-hidden />
-      <span className="absolute left-0 top-1/2 h-px w-full bg-slate-400/50" aria-hidden />
-      <span
-        className="absolute grid size-[34px] place-items-center rounded-full border-[3px] border-white bg-slate-900 text-[15px] font-black text-white shadow"
-        style={{
-          left: `${marker.x}%`,
-          top: `${marker.y}%`,
-          transform: "translate(-50%, -50%)",
-        }}
-        aria-hidden
-      >
-        ⌖
-      </span>
-      <span className="absolute bottom-3 left-3 rounded bg-white/90 px-2 py-1 text-[11px] font-bold text-[var(--text-muted)] shadow-sm">
-        대체 지도 · {selectedLocationLabel}
-      </span>
-    </button>
   );
 }
 
@@ -1080,53 +779,6 @@ function MapShelterSheet({
           <dd className="mt-0.5 font-bold">{shelter.capacity.toLocaleString()}명</dd>
         </div>
       </dl>
-    </div>
-  );
-}
-
-function MapCctvSheet({
-  center,
-  cctv,
-  onClose,
-}: {
-  center: LatLng;
-  cctv: CctvFeed;
-  onClose: () => void;
-}) {
-  return (
-    <div
-      role="dialog"
-      aria-label={`${cctv.name} CCTV 상세`}
-      className="absolute inset-x-3 bottom-3 rounded-[14px] border border-[var(--border-soft)] bg-white p-4 shadow-lg"
-      style={{ zIndex: 20 }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Camera size={16} className="text-[var(--primary)]" aria-hidden />
-            <h2 className="truncate text-[15px] font-extrabold">{cctv.name}</h2>
-          </div>
-          <p className="mt-0.5 truncate text-[12px] text-[var(--text-muted)]">
-            기준 위치에서 {formatDistance(haversineMeters(center, cctv.position))} · {cctv.format}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="min-h-[32px] shrink-0 rounded-md border border-[var(--border)] px-2 text-[12px] font-bold"
-        >
-          닫기
-        </button>
-      </div>
-      <a
-        href={cctv.streamUrl}
-        target="_blank"
-        rel="noopener"
-        className="mt-4 flex min-h-10 w-full items-center justify-center gap-2 rounded-[8px] bg-[var(--primary)] px-3 text-[13px] font-extrabold text-white"
-      >
-        <ExternalLink size={15} aria-hidden />
-        영상 열기
-      </a>
     </div>
   );
 }

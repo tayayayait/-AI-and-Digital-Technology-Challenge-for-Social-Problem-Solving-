@@ -2,6 +2,8 @@ export interface KmaItem {
   category?: string;
   obsrValue?: string;
   fcstValue?: string;
+  fcstDate?: string;
+  fcstTime?: string;
 }
 
 export interface NormalizeKmaWeatherInput {
@@ -43,6 +45,55 @@ const precipitationType = (value: unknown) => {
   }
 };
 
+const rainfallAmount = (value: unknown) => {
+  if (value == null || value === "" || String(value).includes("강수없음")) return 0;
+  const text = String(value);
+  const range = text.match(/(\d+(?:\.\d+)?)\s*~\s*(\d+(?:\.\d+)?)/);
+  if (range) return (Number(range[1]) + Number(range[2])) / 2;
+  const numeric = Number(text.replace(/[^0-9.]/g, ""));
+  if (!Number.isFinite(numeric)) return 0;
+  return text.includes("미만") ? numeric / 2 : numeric;
+};
+
+const forecastTimestamp = (date: string, time: string) =>
+  `${date.slice(0, 4)}-${date.slice(4, 6)}-${date.slice(6, 8)}T${time.slice(0, 2)}:${time.slice(2, 4)}:00+09:00`;
+
+const normalizeHourlyForecast = (items: KmaItem[]) => {
+  const groups = new Map<string, KmaItem[]>();
+  for (const item of items) {
+    if (!/^\d{8}$/.test(item.fcstDate ?? "") || !/^\d{4}$/.test(item.fcstTime ?? "")) {
+      continue;
+    }
+    const key = `${item.fcstDate}${item.fcstTime}`;
+    const group = groups.get(key);
+    if (group) group.push(item);
+    else groups.set(key, [item]);
+  }
+
+  return [...groups.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .slice(0, 6)
+    .map(([key, group]) => {
+      const temperatureCelsius = asNumber(valueByCategory(group, "T1H"));
+      const humidityPercent = asNumber(valueByCategory(group, "REH"));
+      const precipitationProbabilityPercent = asNumber(valueByCategory(group, "POP"));
+      const precipitationAmount = valueByCategory(group, "RN1");
+      const type = precipitationType(valueByCategory(group, "PTY"));
+
+      return {
+        forecastAt: forecastTimestamp(key.slice(0, 8), key.slice(8)),
+        rainfallMmPerHour: rainfallAmount(precipitationAmount),
+        ...(temperatureCelsius !== undefined ? { temperatureCelsius } : {}),
+        ...(humidityPercent !== undefined ? { humidityPercent } : {}),
+        ...(precipitationProbabilityPercent !== undefined
+          ? { precipitationProbabilityPercent }
+          : {}),
+        ...(precipitationAmount !== undefined ? { precipitationAmount } : {}),
+        precipitationType: type,
+      };
+    });
+};
+
 const previousDate = (baseDate: string) => {
   const year = Number(baseDate.slice(0, 4));
   const month = Number(baseDate.slice(4, 6));
@@ -70,8 +121,10 @@ export const normalizeKmaWeather = ({
     asNumber(valueByCategory(nowcastItems, "REH")) ??
     asNumber(valueByCategory(forecastItems, "REH"));
   const precipitationProbabilityPercent = asNumber(valueByCategory(forecastItems, "POP"));
-  const precipitationAmount = valueByCategory(forecastItems, "PCP");
+  const precipitationAmount =
+    valueByCategory(forecastItems, "PCP") ?? valueByCategory(forecastItems, "RN1");
   const precipitation = precipitationType(valueByCategory(nowcastItems, "PTY"));
+  const hourlyForecast = normalizeHourlyForecast(forecastItems);
 
   return {
     observedAt: `${baseDate}T${baseTime}`,
@@ -89,5 +142,6 @@ export const normalizeKmaWeather = ({
     // 없는 특보를 사용자에게 보여주는 문제가 있었고 위험도 계산에서도 강우 점수와
     // 순환 참조가 됐다. 실제 특보는 weather-warning Edge Function이 따로 가져온다.
     alerts: [],
+    hourlyForecast,
   };
 };

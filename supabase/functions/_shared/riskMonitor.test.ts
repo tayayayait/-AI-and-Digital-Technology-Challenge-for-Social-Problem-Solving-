@@ -2,7 +2,9 @@ import { describe, expect, test } from "vitest";
 
 import {
   calculateMonitoredRisk,
+  calculateMonitoredRiskState,
   forEachWithConcurrency,
+  getKmaUltraForecastBase,
   groupSubscriptionsByGrid,
 } from "./riskMonitor";
 
@@ -63,5 +65,40 @@ describe("calculateMonitoredRisk", () => {
         failedSources: 0,
       }),
     ).toBe("CRITICAL");
+  });
+
+  test("현재 위험과 더 높은 시간대별 예상 위험을 구분한다", () => {
+    expect(
+      calculateMonitoredRiskState({
+        weather: {
+          rainfallMmPerHour: 0,
+          hourlyForecast: [
+            {
+              forecastAt: "2026-09-05T19:00:00+09:00",
+              rainfallMmPerHour: 30,
+            },
+          ],
+        },
+        sensors: [{ status: "ACTIVE", riskLevel: "WATCH" }],
+        failedSources: 0,
+      }),
+    ).toEqual({
+      currentLevel: "WATCH",
+      alertLevel: "WARNING",
+      forecastAt: "2026-09-05T19:00:00+09:00",
+    });
+  });
+});
+
+describe("KMA forecast base", () => {
+  test("초단기예보 발표 지연 45분과 자정 경계를 적용한다", () => {
+    expect(getKmaUltraForecastBase(new Date("2026-06-10T15:44:00.000Z"))).toEqual({
+      forecastBaseDate: "20260610",
+      forecastBaseTime: "2330",
+    });
+    expect(getKmaUltraForecastBase(new Date("2026-06-10T15:45:00.000Z"))).toEqual({
+      forecastBaseDate: "20260611",
+      forecastBaseTime: "0030",
+    });
   });
 });

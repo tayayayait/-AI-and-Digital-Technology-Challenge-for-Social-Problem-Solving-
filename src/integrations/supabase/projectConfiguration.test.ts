@@ -17,10 +17,8 @@ const projectBoundFiles = [
 ];
 
 const itsKeyConsumerFiles = [
-  "supabase/functions/cctv-info/index.ts",
+  "supabase/functions/traffic-events/index.ts",
   "scripts/probe/test-api.js",
-  "scripts/probe/test_its_bounds.js",
-  "scripts/probe/test_its_bounds2.js",
   "scripts/probe/test_traffic_direct.js",
 ];
 
@@ -175,9 +173,8 @@ describe("Supabase project configuration", () => {
       );
     }
 
-    const edgeFunction = readFileSync("supabase/functions/cctv-info/index.ts", "utf8");
-    expect(edgeFunction).toContain('Deno.env.get("ITS_CCTV_API_KEY")');
-    expect(edgeFunction).toContain('Deno.env.get("ITS_API_KEY")');
-    expect(edgeFunction).toContain('message: "ITS_CCTV_API_KEY is not configured"');
+    const edgeFunction = readFileSync("supabase/functions/traffic-events/index.ts", "utf8");
+    expect(edgeFunction).toContain("readTrafficEventsApiKey");
+    expect(edgeFunction).toContain('trafficEventsUnavailableBody("ITS_API_KEY is not configured")');
   });
 });

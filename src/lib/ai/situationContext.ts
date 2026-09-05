@@ -7,6 +7,32 @@ import type { RiskLevel, RouteResult, SafetyFact, Shelter } from "@/lib/types";
 
 type Assessment = ReturnType<typeof useRiskAssessment>;
 
+const RISK_LEVEL_RANK: Record<RiskLevel, number> = {
+  UNKNOWN: -1,
+  SAFE: 0,
+  WATCH: 1,
+  WARNING: 2,
+  CRITICAL: 3,
+};
+
+const peakRiskOutlook = (assessment: Assessment) =>
+  (assessment.riskOutlook ?? []).reduce<(typeof assessment.riskOutlook)[number] | null>(
+    (highest, point) => {
+      if (!highest) return point;
+      const rankDifference = RISK_LEVEL_RANK[point.riskLevel] - RISK_LEVEL_RANK[highest.riskLevel];
+      if (rankDifference > 0 || (rankDifference === 0 && point.riskScore > highest.riskScore)) {
+        return point;
+      }
+      return highest;
+    },
+    null,
+  );
+
+const forecastHourLabel = (value: string) => {
+  const match = value.match(/T(\d{2}):/);
+  return match ? `${Number(match[1])}시 예상` : `${value} 예상`;
+};
+
 export const safetyFactStatus = (
   status: string | undefined,
   timestamp: string | null,
@@ -148,7 +174,7 @@ export function buildSituationFacts({
   });
   const weather = assessment.weather;
   if (weather && typeof weather === "object") {
-    const source = assessment.dataSources.find((item) => item.label === "기상청 단기예보");
+    const source = assessment.dataSources.find((item) => item.label.startsWith("기상청"));
     facts.push({
       id: "weather-current",
       kind: "WEATHER",
@@ -162,6 +188,32 @@ export function buildSituationFacts({
       source: source?.label ?? "기상청 단기예보",
       observedAt: weather.observedAt ?? source?.timestamp ?? null,
       status: safetyFactStatus(source?.status, source?.timestamp ?? null, online),
+    });
+  }
+  const forecastPeak = peakRiskOutlook(assessment);
+  if (forecastPeak) {
+    const source = assessment.dataSources.find((item) => item.label === "기상청 초단기예보");
+    facts.push({
+      id: "forecast-peak",
+      kind: "WEATHER",
+      text: [
+        forecastHourLabel(forecastPeak.forecastAt),
+        "시간당 강수량 " + forecastPeak.rainfallMmPerHour + "mm",
+        forecastPeak.precipitationProbabilityPercent != null
+          ? "강수확률 " + forecastPeak.precipitationProbabilityPercent + "%"
+          : null,
+        "예상 위험 " +
+          RISK_META[forecastPeak.riskLevel].label +
+          " " +
+          forecastPeak.riskScore +
+          "점",
+        "예보 기반이며 현재 침수 사실이 아님",
+      ]
+        .filter(Boolean)
+        .join(" · "),
+      source: "기상청 초단기예보 · 위험도 계산",
+      observedAt: source?.timestamp ?? timestamp,
+      status: safetyFactStatus(source?.status, source?.timestamp ?? timestamp, online),
     });
   }
   (assessment.weatherWarningAlerts ?? []).slice(0, 2).forEach((alert) => {

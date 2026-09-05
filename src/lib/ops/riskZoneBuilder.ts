@@ -5,14 +5,7 @@ import { SAFE_MAP_FLOOD_TRACE_WMS_LAYER, SAFE_MAP_RIVER_FLOOD_WMS_LAYER } from "
 import { calculateRiskScore } from "@/lib/risk/calculateRiskScore";
 import { classifyTrafficEvent, trafficEventReason } from "@/lib/risk/trafficEventRisk";
 import type { SensorFeed } from "@/lib/sensors/sensorAccess";
-import type {
-  LatLng,
-  RiskCalculationInput,
-  RiskZone,
-  TrafficEvent,
-  WeatherForecast,
-  WeatherNow,
-} from "@/lib/types";
+import type { LatLng, RiskCalculationInput, RiskZone, TrafficEvent, WeatherNow } from "@/lib/types";
 import { haversineMeters } from "@/lib/utils";
 
 export const RISK_GRID_SIZE_METERS = 500;
@@ -32,7 +25,6 @@ export interface RiskGridCell {
 
 export interface RiskZoneSignals {
   weather: WeatherNow | null;
-  forecast: WeatherForecast | null;
   disasterMessages: DisasterMessage[];
   sensors: SensorFeed[];
   trafficEvents: TrafficEvent[];
@@ -328,7 +320,6 @@ const scoreRiskCells = async ({
     const trafficEvents = nearbyBlockingEvents(signals.trafficEvents, cell.center);
     const calculation = calculateRiskScore({
       weather: signals.weather,
-      forecast: signals.forecast,
       floodTrace: floodTrace.overlap > 0,
       floodTraceOverlap: floodTrace.overlap,
       riverFlood: riverFlood.overlap > 0,

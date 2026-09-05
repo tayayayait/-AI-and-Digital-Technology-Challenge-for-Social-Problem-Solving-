@@ -6,14 +6,6 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 const includesAny = (value: string, keywords: string[]) =>
   keywords.some((keyword) => value.includes(keyword));
 
-const parsePrecipitationAmount = (value?: string) => {
-  if (!value || value === "강수없음") return 0;
-  if (value.includes("30.0~50.0")) return 40;
-  if (value.includes("50.0")) return 50;
-  const numeric = Number(value.replace(/[^0-9.]/g, ""));
-  return Number.isFinite(numeric) ? numeric : 0;
-};
-
 const sensorRainfallMmPerHour = (input: Pick<RiskCalculationInput, "sensors">) => {
   const values = (input.sensors ?? [])
     .filter((sensor) => sensor.status === "ACTIVE")
@@ -36,17 +28,14 @@ const WARNING_LEVEL_SCORE: Record<"WATCH" | "WARNING" | "CRITICAL", number> = {
 
 const weatherRiskScore = ({
   weather,
-  forecast,
   sensors,
   floodWarningLevel,
-}: Pick<RiskCalculationInput, "weather" | "forecast" | "sensors" | "floodWarningLevel">) => {
+}: Pick<RiskCalculationInput, "weather" | "sensors" | "floodWarningLevel">) => {
   const currentRain = weather?.rainfallMmPerHour ?? 0;
-  const forecastRain =
-    forecast?.rainfallMmPerHour ?? parsePrecipitationAmount(forecast?.precipitationAmount);
   const hrfcoRain = sensorRainfallMmPerHour({ sensors });
 
   const rainLimitMmPerHour = 30;
-  const maxRain = Math.max(currentRain, forecastRain, hrfcoRain);
+  const maxRain = Math.max(currentRain, hrfcoRain);
   const rainScore = Math.min(30, Math.round(30 * (maxRain / rainLimitMmPerHour)));
 
   const warningScore = floodWarningLevel ? WARNING_LEVEL_SCORE[floodWarningLevel] : 0;
@@ -98,21 +87,8 @@ const sensorRiskScore = (input: RiskCalculationInput) => {
 const hasActiveSensor = (input: RiskCalculationInput) =>
   (input.sensors ?? []).some((sensor) => sensor.status === "ACTIVE");
 
-const cctvFloodEvidenceScore = (input: RiskCalculationInput) => {
-  const evidence = input.cctvFloodEvidence;
-  if (!evidence || evidence.confidence < 0.7 || evidence.confidence > 1) return 0;
-
-  return {
-    NONE: 0,
-    SHALLOW: 5,
-    DEEP: 10,
-    IMPASSABLE: 15,
-  }[evidence.depthGrade];
-};
-
 export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakdown => {
-  const missingDataCount =
-    (input.weather ? 0 : 1) + (input.forecast ? 0 : 1) + (input.failedDataCount ?? 0);
+  const missingDataCount = (input.weather ? 0 : 1) + (input.failedDataCount ?? 0);
 
   if (missingDataCount >= 2 && !hasActiveSensor(input)) {
     return {
@@ -122,7 +98,6 @@ export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakd
       disasterMessages: 0,
       underpass: 0,
       trafficControl: 0,
-      cctvFlood: 0,
       total: -1,
       level: "UNKNOWN",
       reasons: ["필수 데이터 2개 이상 실패"],
@@ -143,16 +118,15 @@ export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakd
   const disasterMessages = disasterMessageScore(input);
   const underpass = input.hasUnderpass ? 5 : 0;
   const trafficControl = input.trafficControl ? 5 : 0;
-  const cctvFlood = cctvFloodEvidenceScore(input);
 
   const total = clamp(
-    weather + floodTrace + riverFlood + disasterMessages + underpass + trafficControl + cctvFlood,
+    weather + floodTrace + riverFlood + disasterMessages + underpass + trafficControl,
     0,
     100,
   );
 
   const reasons = [
-    weather > 0 ? (input.floodWarningTitle ?? "강우·예보 위험") : "",
+    weather > 0 ? (input.floodWarningTitle ?? "강우·기상특보 위험") : "",
     floodTrace > 0 ? "침수흔적 중첩" : "",
     riverFlood > 0
       ? sensor >= 80
@@ -164,7 +138,6 @@ export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakd
     disasterMessages > 0 ? "재난문자 위험지역" : "",
     underpass > 0 ? "현재 위치 주변 지하차도" : "",
     trafficControl > 0 ? (input.trafficControlTitle ?? "교통통제·돌발") : "",
-    cctvFlood > 0 ? `CCTV AI 판독 ${input.cctvFloodEvidence?.depthGrade}` : "",
   ].filter(Boolean);
 
   return {
@@ -174,7 +147,6 @@ export const calculateRiskScore = (input: RiskCalculationInput): RiskScoreBreakd
     disasterMessages,
     underpass,
     trafficControl,
-    cctvFlood,
     total,
     level: scoreToLevel(total),
     reasons,

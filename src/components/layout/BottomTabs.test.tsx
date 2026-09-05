@@ -33,10 +33,11 @@ describe("BottomTabs", () => {
     expect(nav).toHaveClass("pb-[env(safe-area-inset-bottom)]");
   });
 
-  test("exposes field information to citizens from the primary navigation", () => {
+  test("exposes the six-hour outlook from the primary navigation", () => {
     render(<BottomTabs />);
 
-    expect(screen.getByRole("link", { name: /현장/ })).toHaveAttribute("href", "/ops/cctv");
+    expect(screen.getByRole("link", { name: /전망/ })).toHaveAttribute("href", "/forecast");
+    expect(screen.queryByRole("link", { name: /현장/ })).not.toBeInTheDocument();
   });
 
   test("does not expose route comparison as a primary navigation item", () => {
